@@ -20,7 +20,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./llm_workflow.py:/app/llm_workflow.py  
+      - ./llm_workflow.py:/app/llm_workflow.py 
+    env_file:
+      - .env 
 
 volumes:
   ollama_data:
