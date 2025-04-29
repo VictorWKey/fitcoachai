@@ -3,10 +3,10 @@ from typing import List
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import time
 import requests
-load_dotenv()
+# load_dotenv()
 
 LANGSMITH_TRACING = os.getenv("LANGSMITH_TRACING")
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
@@ -26,32 +26,33 @@ def validate_user(user_id: int, addresses: List[str]) -> bool:
     return True
 
 OLLAMA_URL = "http://ollama:11434"
-MODEL_NAME = "llama3.2"
+MODEL_NAME = "llama3.2:latest"
 
-# Esperar a que Ollama esté listo
+# Wait for Ollama to be ready
 while True:
     try:
-        r = requests.get(f"{OLLAMA_URL}/api/tags")
+        r = requests.get(f"{OLLAMA_URL}/api/version")
         if r.status_code == 200:
-            print("✅ Ollama server está listo!")
+            print("✅ Ollama server is ready!")
             break
     except Exception:
-        print("⏳ Esperando a Ollama server...")
+        print("⏳ Waiting for Ollama server...")
     time.sleep(2)
 
-# Verificar si el modelo ya está descargado
+# Check if the model is already downloaded
 r = requests.get(f"{OLLAMA_URL}/api/tags")
 models = r.json().get("models", [])
 
+print(models)
+
 if not any(model["name"] == MODEL_NAME for model in models):
-    print(f"⬇️ Modelo {MODEL_NAME} no encontrado, haciendo pull...")
+    print(f"⬇️ Model {MODEL_NAME} not found, pulling...")
     r = requests.post(f"{OLLAMA_URL}/api/pull", json={"name": MODEL_NAME})
     r.raise_for_status()
-    print(f"✅ Modelo {MODEL_NAME} descargado!")
-
+    print(f"✅ Model {MODEL_NAME} downloaded!")
 
 llm = ChatOllama(
-    model="llama3.2:latest",
+    model=MODEL_NAME,
     temperature=0,
     base_url="http://ollama:11434"
 ).bind_tools([validate_user])
