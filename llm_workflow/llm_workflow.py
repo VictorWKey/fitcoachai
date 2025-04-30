@@ -5,6 +5,7 @@ from langchain_ollama import ChatOllama
 import os
 import time
 import requests
+from LLMTools.TrainingLog import TrainingLog
 
 LANGSMITH_TRACING = os.getenv("LANGSMITH_TRACING")
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
@@ -12,16 +13,6 @@ LANGSMITH_PROJECT = "fitcoachai"
 LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
 
 OLLAMA_URL = "http://ollama:11434"
-
-@tool
-def validate_user(user_id: int, addresses: List[str]) -> bool:
-    """Validate user using historical addresses.
-
-    Args:
-        user_id (int): the user ID.
-        addresses (List[str]): Previous addresses as a list of strings.
-    """
-    return True
 
 OLLAMA_URL = "http://ollama:11434"
 MODEL_NAME = "llama3.2:latest"
@@ -41,8 +32,6 @@ while True:
 r = requests.get(f"{OLLAMA_URL}/api/tags")
 models = r.json().get("models", [])
 
-print(models)
-
 if not any(model["name"] == MODEL_NAME for model in models):
     print(f"⬇️ Model {MODEL_NAME} not found, pulling...")
     r = requests.post(f"{OLLAMA_URL}/api/pull", json={"name": MODEL_NAME})
@@ -53,12 +42,10 @@ llm = ChatOllama(
     model=MODEL_NAME,
     temperature=0,
     base_url="http://ollama:11434"
-).bind_tools([validate_user])
+).bind_tools([TrainingLog])
 
 result = llm.invoke(
-    "Could you validate user 12345678910? They previously lived at "
-    "123 Fake St in Boston MA and 234 Pretend Boulevard in "
-    "Houston TX."
+    "hice 9 repeticiones de press de banca con 100kg en la segunda serie y senti que fue un RIR 2"
 )
 print(result.content)
 print(result.tool_calls)
