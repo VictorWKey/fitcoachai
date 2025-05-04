@@ -1,4 +1,13 @@
 langchain
 langchain-ollama
+langgraph
 dotenv
-pydantic
+ipython
+langchain-community 
+langchainhub
+sqlalchemy>=2.0.0
+alembic>=1.9.0
+psycopg2-binary>=2.9.5
+pydantic>=2.0.0
+fastapi
+uvicorn[standard]  
