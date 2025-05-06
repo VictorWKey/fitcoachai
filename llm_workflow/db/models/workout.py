@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from ..base import Base
 
 class MuscleGroup(enum.Enum):
@@ -41,7 +41,7 @@ class Workout(Base):
     start_time = Column(
         DateTime(timezone=True), 
         nullable=False, default=
-        datetime.now(datetime.UTC)
+        datetime.now(timezone.utc)
     )
     created_at = Column(
         DateTime(timezone=True), 

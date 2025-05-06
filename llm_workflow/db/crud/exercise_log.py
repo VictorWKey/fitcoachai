@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from ..models.workout import ExerciseLog
-from ..schemas.workout import ExerciseLogCreate, ExerciseLogUpdate
+from db.models.exercise_log import ExerciseLog
+from db.schemas.exercise_log import ExerciseLogCreate, ExerciseLogUpdate
 
 def get_exercise_log(db: Session, log_id: int) -> Optional[ExerciseLog]:
     """Obtener un log de ejercicio por ID"""

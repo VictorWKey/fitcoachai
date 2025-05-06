@@ -1,2 +1,1 @@
-from .log_exercise import LogExerciseSchema
-
+from .log_exercise import log_exercise

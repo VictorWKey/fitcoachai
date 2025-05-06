@@ -24,3 +24,7 @@ from .exercise_log import (
     update_exercise_log,
     delete_exercise_log,
 )
+
+from .utils import (
+    get_or_create_workout_id,
+)
