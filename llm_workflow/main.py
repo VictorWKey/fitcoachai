@@ -1,6 +1,5 @@
 from db import init_db
 from fastapi import FastAPI
-import fastapi
 from api.routes import api_router
 from utils import wait_for_server_and_load_model
 from contextlib import asynccontextmanager
@@ -14,6 +13,7 @@ async def lifespan(app: FastAPI):
     print("✅ Modelo cargado.")
     yield
     print("🧹 Limpiando recursos del LLM...")
+
     # Aquí podrías liberar GPU o cerrar sesiones si fuera necesario
     # Por ejemplo: llm.unload() o similar
     

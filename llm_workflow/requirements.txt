@@ -20,3 +20,6 @@ psycopg-pool
 langgraph 
 langgraph-checkpoint-postgres
 pgvector
+transformers
+pyppeteer
+nest_asyncio

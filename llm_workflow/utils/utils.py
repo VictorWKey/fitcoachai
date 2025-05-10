@@ -1,6 +1,8 @@
 import requests
 import time
 import os
+from langchain_core import runnables
+from langchain_core.runnables.graph import CurveStyle, MermaidDrawMethod, NodeStyles
 
 OLLAMA_API_BASE_URL = os.getenv("OLLAMA_API_BASE_URL")
 MODEL_NAME = os.getenv("MODEL_NAME")
@@ -26,12 +28,6 @@ def wait_for_server_and_load_model():
       r = requests.post(f"{OLLAMA_API_BASE_URL}/api/pull", json={"name": MODEL_NAME})
       r.raise_for_status()
       print(f"✅ Model {MODEL_NAME} downloaded!")
-      
-def save_graph_image(graph, filename):
-    image_data = graph.get_graph().draw_mermaid_png()
-
-    with open(filename, "wb") as f:
-        f.write(image_data)
         
 def stream_graph_updates(graph, user_input: str):
     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
