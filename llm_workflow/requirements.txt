@@ -23,3 +23,4 @@ pgvector
 transformers
 pyppeteer
 nest_asyncio
+asyncpg

@@ -1,23 +1,22 @@
-from contextlib import contextmanager
+# session.py
+from contextlib import asynccontextmanager
 from .base import SessionLocal
 
-def get_db():
-    """Obtener una sesión de base de datos."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@asynccontextmanager
+async def db_session():
+    async with SessionLocal() as db:
+        try:
+            yield db
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
+        finally:
+            await db.close()
 
-@contextmanager
-def db_session():
-    """Context manager para usar una sesión de base de datos."""
-    db = SessionLocal()
-    try:
-        yield db
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
+async def get_db():
+    async with SessionLocal() as db:
+        try:
+            yield db
+        finally:
+            await db.close()

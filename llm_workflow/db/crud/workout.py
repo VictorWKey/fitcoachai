@@ -1,49 +1,50 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from typing import Optional, List
 from ..models.workout import Workout
 from ..schemas.workout import WorkoutCreate, WorkoutUpdate
-from datetime import datetime
 
-def get_workout(db: Session, workout_id: int) -> Optional[Workout]:
+async def get_workout(db: AsyncSession, workout_id: int) -> Optional[Workout]:
     """Obtener un entrenamiento por ID"""
-    return db.query(Workout).filter(Workout.id == workout_id).first()
+    result = await db.execute(select(Workout).where(Workout.id == workout_id))
+    return result.scalar_one_or_none()
 
-def get_user_workouts(db: Session, user_id: int) -> List[Workout]:
+async def get_user_workouts(db: AsyncSession, user_id: int) -> List[Workout]:
     """Obtener entrenamientos de un usuario"""
-    return db.query(Workout).filter(Workout.user_id == user_id).order_by(Workout.created_at.desc()).all()
-
-def create_workout(db: Session, workout_data: WorkoutCreate) -> Workout:
-    """Crear un nuevo entrenamiento"""
-    db_workout = Workout(
-        user_id=workout_data.user_id,
-        category=workout_data.category,
-        start_time=workout_data.start_time
+    result = await db.execute(
+        select(Workout)
+        .where(Workout.user_id == user_id)
+        .order_by(Workout.created_at.desc())
     )
+    return result.scalars().all()
+
+async def create_workout(db: AsyncSession, workout_data: WorkoutCreate) -> Workout:
+    """Crear un nuevo entrenamiento"""
+    db_workout = Workout(**workout_data.dict())
     db.add(db_workout)
-    db.commit()
-    db.refresh(db_workout)
+    await db.commit()
+    await db.refresh(db_workout)
     return db_workout
 
-def update_workout(db: Session, workout_id: int, update_data: WorkoutUpdate) -> Optional[Workout]:
+async def update_workout(db: AsyncSession, workout_id: int, update_data: WorkoutUpdate) -> Optional[Workout]:
     """Actualizar un entrenamiento"""
-    db_workout = get_workout(db, workout_id)
+    db_workout = await get_workout(db, workout_id)
     if not db_workout:
         return None
 
-    update_dict = update_data.dict(exclude_unset=True)
-    for key, value in update_dict.items():
+    for key, value in update_data.dict(exclude_unset=True).items():
         setattr(db_workout, key, value)
 
-    db.commit()
-    db.refresh(db_workout)
+    await db.commit()
+    await db.refresh(db_workout)
     return db_workout
 
-def delete_workout(db: Session, workout_id: int) -> bool:
+async def delete_workout(db: AsyncSession, workout_id: int) -> bool:
     """Eliminar un entrenamiento"""
-    db_workout = get_workout(db, workout_id)
+    db_workout = await get_workout(db, workout_id)
     if not db_workout:
         return False
 
-    db.delete(db_workout)
-    db.commit()
+    await db.delete(db_workout)
+    await db.commit()
     return True
