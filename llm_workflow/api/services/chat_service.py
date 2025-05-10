@@ -1,10 +1,9 @@
-from langchain.schema.messages import HumanMessage
-from langchain.schema.runnable import RunnableConfig
-from agent.agent import agents
+# api/services/chat_service.py
+from langchain_core.messages import HumanMessage
 
-async def process_agent(user_input: str, config: dict) -> str:
-    if agents["agent"] is None:
-        raise Exception("Agent aún no ha sido cargado")
-    
-    response = await agents["agent"].ainvoke({"messages": [{"role": "user", "content": user_input}]}, config)
+async def process_agent(user_input: str, config: dict, agent) -> dict:
+    response = await agent.ainvoke(
+        {"messages": [HumanMessage(content=user_input)]},
+        config=config
+    )
     return response

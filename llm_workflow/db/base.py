@@ -5,11 +5,14 @@ import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Crear engine de SQLAlchemy
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+  DATABASE_URL,
+  pool_size=5,
+  max_overflow=5,
+  pool_timeout=30,
+  pool_recycle=1800,
+  )
 
-# Crear una clase base para los modelos
 Base = declarative_base()
 
-# Crear una fábrica de sesiones
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
