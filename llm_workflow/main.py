@@ -6,7 +6,7 @@ from api.routes import api_router
 from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_ollama import ChatOllama
-
+from utils.utils import wait_for_server_and_load_model
 from agent.agent import get_agent
 
 DB_URI = os.getenv("DATABASE_URL")
@@ -20,6 +20,9 @@ connection_kwargs = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    
+    await wait_for_server_and_load_model()
+    
     async with AsyncConnectionPool(
         conninfo=DB_URI,
         min_size=5,
