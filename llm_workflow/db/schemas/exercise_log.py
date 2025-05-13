@@ -11,18 +11,22 @@ class WeightUnit(str, Enum):
 # Base
 class ExerciseLogBase(BaseModel):
     exercise_name: Optional[str] = Field(
+        default=None,
         description="Nombre del ejercicio realizado. Ejemplo: 'press de banca', 'remo con barra'."
     )
     set_number: Optional[int] = Field(
         description="Número de la serie dentro del ejercicio. Por ejemplo, 1 si es la primera serie, 2 si es la segunda, etc."
     )
     reps: Optional[int] = Field(
+        default=None,
         description="Cantidad de repeticiones realizadas en esta serie."
     )
     weight: Optional[float] = Field(
+        default=None,
         description="Peso utilizado por el usuario en esta serie."
     )
     weight_unit: Optional[WeightUnit] = Field(
+        default=None,
         description="Unidad del peso registrado."
     )
     rir: Optional[int] = Field(

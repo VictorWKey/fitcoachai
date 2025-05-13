@@ -1,11 +1,11 @@
 # agent/agent.py
 from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
 from langchain_core.messages import trim_messages
 from typing_extensions import TypedDict
 from typing import Annotated, Union
+from langgraph.prebuilt import ToolNode, tools_condition
 
-def get_agent(llm, checkpointer):
+def get_agent(llm, checkpointer, tools):
     def manage_list(existing: list, updates: Union[list, dict]):
         if isinstance(updates, list):
             return existing + updates
@@ -27,13 +27,21 @@ def get_agent(llm, checkpointer):
         return {"messages": [await llm.ainvoke(state["messages"])]}
     
     async def prepare_llm_context(state: State):
-        return {"messages": {"type": "keep", "from": -3, "to": None}}
+        return {"messages": {"type": "keep"}}
+
+    tool_node = ToolNode(tools=tools)
 
     graph_builder = StateGraph(State)
-    graph_builder.add_node("chatbot", chatbot)
     graph_builder.add_node("prepare_llm_context", prepare_llm_context)
+    graph_builder.add_node("chatbot", chatbot)
+    graph_builder.add_node("tools", tool_node)
     graph_builder.add_edge(START, "prepare_llm_context")
     graph_builder.add_edge("prepare_llm_context", "chatbot")
+    graph_builder.add_conditional_edges(
+        "chatbot",
+        tools_condition
+    )
+    graph_builder.add_edge("tools", "chatbot")
     graph_builder.add_edge("chatbot", END)
     
     agent = graph_builder.compile(checkpointer=checkpointer)

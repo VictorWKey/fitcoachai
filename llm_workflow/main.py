@@ -8,6 +8,8 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_ollama import ChatOllama
 from utils.utils import wait_for_server_and_load_model
 from agent.agent import get_agent
+from db import init_db
+from agent.tools.log_exercise import log_exercise
 
 DB_URI = os.getenv("DATABASE_URL")
 OLLAMA_API_BASE_URL = os.getenv("OLLAMA_API_BASE_URL")
@@ -22,6 +24,8 @@ connection_kwargs = {
 async def lifespan(app: FastAPI):
     
     await wait_for_server_and_load_model()
+    
+    await init_db()
     
     async with AsyncConnectionPool(
         conninfo=DB_URI,
@@ -38,9 +42,11 @@ async def lifespan(app: FastAPI):
             model=MODEL_NAME,
             temperature=0.2,
             base_url=OLLAMA_API_BASE_URL,
-        )
+        ).bind_tools([log_exercise])
 
-        agent = get_agent(llm=llm, checkpointer=checkpointer)
+        agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise])
+        
+        print(agent.get_graph().draw_mermaid())
 
         app.state.pool = pool
         app.state.llm = llm

@@ -17,9 +17,14 @@ async def chat(
     current_user: Annotated[User, Depends(get_current_user)],
     chat_input: ChatInput
 ):
-    config = {"configurable": {"thread_id": str(current_user.id)}}
+    config = {"configurable": {
+                "thread_id": str(current_user.id),
+                "user_id": str(current_user.id)
+            }
+        }   
 
     agent = request.app.state.agent
 
     response = await process_agent(chat_input.input, config, agent)
+    
     return response["messages"]
