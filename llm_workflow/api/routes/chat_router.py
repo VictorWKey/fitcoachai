@@ -25,7 +25,19 @@ async def chat(
         }   
 
     agent = request.app.state.agent
+    
+    user_chat_history = await request.app.state.checkpointer.aget_tuple(
+        config=config
+    )
+    print(user_chat_history)
+    user_chat_history_exists = True if user_chat_history else False
+    print(user_chat_history_exists)
 
-    response = await process_agent(chat_input.input, config, agent)
+    response = await process_agent(
+        chat_input.input, 
+        config, 
+        agent,
+        user_chat_history_exists
+    )
     
     return response["messages"]
