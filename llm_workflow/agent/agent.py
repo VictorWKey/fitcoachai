@@ -14,7 +14,7 @@ def get_agent(llm, checkpointer, tools):
                 existing,
                 strategy="last",
                 token_counter=llm,
-                max_tokens=500,
+                max_tokens=200,
                 start_on="human",
                 end_on=("human", "tool"),
                 include_system=True,

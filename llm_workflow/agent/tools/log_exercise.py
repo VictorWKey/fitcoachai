@@ -11,20 +11,23 @@ from langgraph.prebuilt import InjectedState
 from typing import Annotated
 from langchain_core.runnables import RunnableConfig
 from db.models.exercise_log import WeightUnit
-from utils.utils import to_enum_or_none
 
 @tool("log_exercise", args_schema=ExerciseLogBase)
 async def log_exercise(
     config: RunnableConfig,
-    exercise_name: str,
-    set_number: int,
-    reps: int,
-    weight: float,
-    weight_unit: WeightUnit,
-    rir: int,
-    notes: str
+    exercise_name: Optional[str] = None,
+    set_number: Optional[int] = None,
+    reps: Optional[int] = None,
+    weight: Optional[float] = None,
+    weight_unit: Optional[WeightUnit] = None,
+    rir: Optional[int] = None,
+    notes: Optional[str] = None
 ):
-    """Registra una serie individual del entrenamiento del usuario, incluyendo ejercicio, repeticiones, peso, RIR y comentarios opcionales."""
+    """Registra una serie individual del entrenamiento del usuario, incluyendo ejercicio, repeticiones, peso, RIR y comentarios opcionales.
+    
+    IMPORTANTE:
+    - Esta herramienta no debe tomar en cuenta los mensajes previos al ultimo mensaje en el historial del chat para llenar los valores de entrada. 
+    """
     user_id: int = config["configurable"].get("user_id")
     print(type(exercise_name))
     print(type(set_number))

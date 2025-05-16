@@ -37,12 +37,7 @@ def stream_graph_updates(graph, user_input: str):
         for value in event.values():
             print("Assistant:", value)
 
-def to_enum_or_none(enum_cls, value):
-    if value is None:
+def coerce_null_string(v):
+    if v == "null" or v == "":
         return None
-    try:
-        return enum_cls(value)
-    except ValueError:
-        raise ValueError(f"Valor inválido para {enum_cls.__name__}: {value}")
-
-
+    return v
