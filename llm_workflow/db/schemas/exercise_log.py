@@ -3,40 +3,69 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 from pydantic import Field
+from db.models.exercise_log import WeightUnit
+from utils.utils import coerce_null_string
+from typing import Annotated
+from pydantic import BeforeValidator
 
-class WeightUnit(str, Enum):
-    KG = "kg"
-    LB = "lb"
-
-# Base
 class ExerciseLogBase(BaseModel):
-    exercise_name: Optional[str] = Field(
-        default=None,
-        description="Nombre del ejercicio realizado. Ejemplo: 'press de banca', 'remo con barra'."
-    )
-    set_number: Optional[int] = Field(
-        description="Número de la serie dentro del ejercicio. Por ejemplo, 1 si es la primera serie, 2 si es la segunda, etc."
-    )
-    reps: Optional[int] = Field(
-        default=None,
-        description="Cantidad de repeticiones realizadas en esta serie."
-    )
-    weight: Optional[float] = Field(
-        default=None,
-        description="Peso utilizado por el usuario en esta serie."
-    )
-    weight_unit: Optional[WeightUnit] = Field(
-        default=None,
-        description="Unidad del peso registrado."
-    )
-    rir: Optional[int] = Field(
-        default=None,
-        description="Repeticiones en reserva (RIR) reportadas por el usuario. Puede ir de 0 a 10."
-    )
-    notes: Optional[str] = Field(
-        default=None,
-        description="Información adicional *no* capturada por los otros campos: weight_unit, rir, serie_number, reps, series_number y exercise. Por ejemplo: técnica usada, sensaciones, ajustes en el equipo, o cualquier dato relevante. Si no hay nada extra, dejar vacío o null."
-    )
+    exercise_name: Annotated[
+        Optional[str],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Nombre del ejercicio realizado. Ejemplo: 'press de banca', 'remo con barra'."
+        )
+    ]
+    set_number: Annotated[
+        Optional[int],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Número de la serie dentro del ejercicio. Por ejemplo, 1 si es la primera serie, 2 si es la segunda, etc."
+        )
+    ]
+    reps: Annotated[
+        Optional[int],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Cantidad de repeticiones realizadas en esta serie."
+        )
+    ]
+    weight: Annotated[
+        Optional[float],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Peso utilizado por el usuario en esta serie."
+        )
+    ]
+    weight_unit: Annotated[
+        Optional[WeightUnit],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Unidad del peso registrado."
+        )
+    ]
+    rir: Annotated[
+        Optional[int],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Repeticiones en reserva (RIR) reportadas por el usuario. Puede ir de 0 a 10."
+        )
+    ]
+    notes: Annotated[
+        Optional[str],
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Información adicional *no* capturada por los otros campos: weight_unit, rir, serie_number, reps, series_number y exercise. Por ejemplo: técnica usada, sensaciones, ajustes en el equipo, o cualquier dato relevante. Si no hay nada extra, dejar vacío o null."
+        )
+    ]
+
 
 # Crear
 class ExerciseLogCreate(ExerciseLogBase):
