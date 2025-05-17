@@ -24,9 +24,6 @@ async def log_exercise(
     notes: Optional[str] = None
 ):
     """Registra una serie individual del entrenamiento del usuario, incluyendo ejercicio, repeticiones, peso, RIR y comentarios opcionales.
-    
-    IMPORTANTE:
-    - Esta herramienta no debe tomar en cuenta los mensajes previos al ultimo mensaje en el historial del chat para llenar los valores de entrada. 
     """
     user_id: int = config["configurable"].get("user_id")
     print(type(exercise_name))
@@ -50,7 +47,7 @@ async def log_exercise(
             rir=rir,
             notes=notes))
         
-    return "Ejercicio registrado correctamente"
+    return "Ejercicio registrado correctamente en la base de datos."
 
 
 

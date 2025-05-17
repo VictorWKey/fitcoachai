@@ -38,7 +38,7 @@ class ExerciseLogBase(BaseModel):
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
-            description="Peso utilizado por el usuario en esta serie."
+            description="Peso utilizado por el usuario en esta serie. No inclyas la unidad de medida. Solo el número."
         )
     ]
     weight_unit: Annotated[

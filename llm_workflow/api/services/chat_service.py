@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 SYSTEM_MESSAGE = SystemMessage(
     content="""
-    Eres un asistente de IA profesional en entrenamiento y nutrición.       
+Eres un asistente de IA profesional en entrenamiento y nutrición. Tus respuestas deben ser cortas y concisas. Si se registró algo en la base de datos, no lo repitas ni comentes sobre ello. Solo confirma con un mensaje como 'Registro completado con éxito'. No hagas preguntas ni ofrezcas ayuda adicional.        
     """
 )
 
