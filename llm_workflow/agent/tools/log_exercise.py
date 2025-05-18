@@ -23,21 +23,14 @@ async def log_exercise(
     rir: Optional[int] = None,
     notes: Optional[str] = None
 ):
-    """Registra una serie individual del entrenamiento del usuario, incluyendo ejercicio, repeticiones, peso, RIR y comentarios opcionales.
+    """Registra una serie individual del entrenamiento del usuario en la base de datos, incluyendo ejercicio, repeticiones, peso, RIR y comentarios opcionales cuando el usuario pone información sobre lo que podria ser una serie de entrenamiento. El usuario no necesariamente tiene que especificar que se registre una serie en la base de datos, puede simplemente escribir lo que hizo en el entrenamiento.
     """
     user_id: int = config["configurable"].get("user_id")
-    print(type(exercise_name))
-    print(type(set_number))
-    print(type(reps))
-    print(type(weight))
-    print(type(weight_unit), weight_unit)
-    print(type(rir))
-    print(type(notes))
-    
     workout_id = await get_or_create_workout_id(user_id)
     
     async with db_session() as db:
         await create_exercise_log(db, ExerciseLogCreate(
+            user_id=user_id,
             workout_id=workout_id,
             exercise_name=exercise_name,
             set_number=set_number,

@@ -22,7 +22,7 @@ class ExerciseLogBase(BaseModel):
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
-            description="Número de la serie dentro del ejercicio. Por ejemplo, 1 si es la primera serie, 2 si es la segunda, etc."
+            description="Número de la serie dentro del ejercicio. Por ejemplo, 1 si es la primera serie, 2 si es la segunda, etc. Si el nombre del ejercicio cambia, el número de la serie se reinicia a 1."
         )
     ]
     reps: Annotated[
@@ -46,7 +46,7 @@ class ExerciseLogBase(BaseModel):
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
-            description="Unidad del peso registrado."
+            description="Unidad del peso registrado. Por ejemplo: kg o lbs"
         )
     ]
     rir: Annotated[
@@ -69,6 +69,7 @@ class ExerciseLogBase(BaseModel):
 
 # Crear
 class ExerciseLogCreate(ExerciseLogBase):
+    user_id: int
     workout_id: int
 
 # Actualizar
@@ -85,8 +86,8 @@ class ExerciseLogUpdate(BaseModel):
 class ExerciseLog(ExerciseLogBase):
     id: int
     workout_id: int
-    created_at: datetime
-    updated_at: Optional[datetime] = None
+    exercise_date: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True

@@ -18,6 +18,7 @@ class User(Base):
 
     # Relaciones
     workouts = relationship("Workout", back_populates="user", cascade="all, delete-orphan")
+    exercise_logs = relationship("ExerciseLog", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User {self.username}>"

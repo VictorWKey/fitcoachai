@@ -24,3 +24,4 @@ transformers
 pyppeteer
 nest_asyncio
 asyncpg
+langchain-openai

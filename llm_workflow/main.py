@@ -6,6 +6,7 @@ from api.routes import api_router
 from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 from utils.utils import wait_for_server_and_load_model
 from agent.agent import get_agent
 from db import init_db
@@ -23,7 +24,7 @@ connection_kwargs = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
-    await wait_for_server_and_load_model()
+    # await wait_for_server_and_load_model()
     
     await init_db()
     
@@ -38,10 +39,16 @@ async def lifespan(app: FastAPI):
         checkpointer = AsyncPostgresSaver(pool)
         await checkpointer.setup()
 
-        llm = ChatOllama(
+        # llm = ChatOllama(
+        #     model=MODEL_NAME,
+        #     temperature=0.2,
+        #     base_url=OLLAMA_API_BASE_URL,
+        # ).bind_tools([log_exercise])
+
+        llm = ChatOpenAI(
             model=MODEL_NAME,
-            temperature=0.2,
-            base_url=OLLAMA_API_BASE_URL,
+            temperature=0,
+            max_tokens=1000,
         ).bind_tools([log_exercise])
 
         agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise])
