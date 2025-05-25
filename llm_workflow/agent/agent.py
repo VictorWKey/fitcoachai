@@ -4,6 +4,7 @@ from langchain_core.messages import trim_messages
 from typing_extensions import TypedDict
 from typing import Annotated, Union
 from langgraph.prebuilt import ToolNode, tools_condition
+from langchain_core.messages.utils import count_tokens_approximately
 
 def get_agent(llm, checkpointer, tools):
     def manage_list(existing: list, updates: Union[list, dict]):
@@ -13,7 +14,7 @@ def get_agent(llm, checkpointer, tools):
             return trim_messages(
                 existing,
                 strategy="last",
-                token_counter=llm,
+                token_counter=count_tokens_approximately,
                 max_tokens=1000,
                 start_on="human",
                 end_on=("human", "tool"),

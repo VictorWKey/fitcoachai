@@ -11,7 +11,10 @@ USER_MESSAGE = ChatPromptTemplate([
   ("user", """
           Mensaje: {input} 
           
-          Nota: En caso de que decidas hacer un registro en la base de datos utilizando las herramientas disponibles, puedes tomar la siguiente información del pasado para poder inferir aquella informacion que no fue proporcionada por mi en el mensaje actual, ya sea el numero de serie actual, el nombre del ejercicio, el peso utilizado en la serie actual, etc. 
+          Nota: Solo cuando el usuario escriba algo relacionado con su entrenamiento, considera que en caso de que decidas hacer un registro en la base de datos utilizando las herramientas disponibles, puedes tomar la siguiente información del pasado para poder inferir aquella informacion que no fue proporcionada por mi en el mensaje actual, ya sea el numero de serie actual, el nombre del ejercicio, el peso utilizado en la serie actual, etc.
+          Si no hay informacion del pasado, no la utilices para inferir.
+
+          En caso de que el usuario quiera charlar contigo de forma normal (por ejemplo, si te dice "hola" o "como estas?"), hazlo, pero responde corto y conciso.
           
           Informacion del pasado:           
           {history}

@@ -4,6 +4,7 @@ from ..models.user import User
 from ..schemas.user import UserCreate, UserUpdate
 from passlib.context import CryptContext
 from sqlalchemy import select
+from datetime import datetime, timezone
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -19,13 +20,13 @@ async def get_user(db: AsyncSession, user_id: int) -> Optional[User]:
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     result = await db.execute(
-        select(User).filter_by(email=email)
+        select(User).where(User.email == email)
     )
     return result.scalar_one_or_none()
 
 async def get_user_by_username(db: AsyncSession, username: str) -> Optional[User]:
     result = await db.execute(
-        select(User).filter_by(username=username)
+        select(User).where(User.username == username)
     )
     return result.scalar_one_or_none()
 
@@ -35,14 +36,25 @@ async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[U
     )
     return result.scalars().all()
 
-async def create_user(db: AsyncSession, user: UserCreate) -> User:
+async def create_user(
+    db: AsyncSession, 
+    user: UserCreate, 
+    verification_token: Optional[str] = None,
+    verification_token_expires: Optional[datetime] = None
+) -> User:
     hashed_password = get_password_hash(user.password)
     db_user = User(
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
         full_name=user.full_name,
-        is_active=user.is_active
+        is_active=user.is_active,
+        is_verified=False,
+        verification_token=verification_token,
+        verification_token_expires=verification_token_expires,
+        failed_login_attempts=0,
+        last_failed_login=None,
+        account_locked_until=None
     )
     db.add(db_user)
     await db.commit()
@@ -54,7 +66,7 @@ async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> Optio
     if not db_user:
         return None
     
-    update_data = user.dict(exclude_unset=True)
+    update_data = user.model_dump(exclude_unset=True)
     
     if "password" in update_data:
         update_data["hashed_password"] = get_password_hash(update_data.pop("password"))
