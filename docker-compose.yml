@@ -1,4 +1,3 @@
-
 services:
   ollama:
     image: ollama/ollama:0.6.5
@@ -11,6 +10,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
 
   db:
     image: postgres:17
@@ -36,6 +44,7 @@ services:
     depends_on:
       - ollama
       - db
+      - redis
     environment:
       OLLAMA_API_BASE_URL: ${OLLAMA_API_BASE_URL}
       MODEL_NAME: ${MODEL_NAME}
@@ -52,6 +61,7 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       CORS_ORIGINS: ${CORS_ORIGINS}
       WEBSITE_URL: ${WEBSITE_URL}
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     volumes:
@@ -59,3 +69,4 @@ services:
 volumes:
   ollama_data:
   pgdata:
+  redis_data:

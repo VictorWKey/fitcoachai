@@ -17,8 +17,8 @@ async def process_agent(user_input: str, config: dict, agent, user_chat_history_
     else:
         messages = [SYSTEM_MESSAGE, user_messages[0]]
         
-    for msg in messages:
-        print(f"{type(msg)=} | {msg.content=}")
+    # for msg in messages:
+    #     print(f"{type(msg)=} | {msg.content=}")
 
 
     # # Ejecutar el agente

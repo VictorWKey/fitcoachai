@@ -10,7 +10,6 @@ OLLAMA_API_BASE_URL = os.getenv("OLLAMA_API_BASE_URL")
 MODEL_NAME = os.getenv("MODEL_NAME")
 
 async def wait_for_server_and_load_model():
-    # Wait for Ollama to be ready
     async with httpx.AsyncClient() as client:
         while True:
             try:

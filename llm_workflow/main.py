@@ -20,6 +20,7 @@ from starlette.responses import Response
 from fastapi_csrf_protect import CsrfProtect
 from fastapi_csrf_protect.exceptions import CsrfProtectError
 from pydantic import BaseModel
+from middleware import RateLimitMiddleware
 
 # Configuración CSRF
 class CsrfSettings(BaseModel):
@@ -67,7 +68,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
-    # await wait_for_server_and_load_model()
+    # await wait_for_server_and_load_model() # Activar cuando se use Ollama localmente
     
     await init_db()
     
@@ -96,7 +97,7 @@ async def lifespan(app: FastAPI):
 
         agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise])
         
-        print(agent.get_graph().draw_mermaid())
+        # print(agent.get_graph().draw_mermaid())
 
         app.state.pool = pool
         app.state.llm = llm
@@ -110,6 +111,13 @@ app = FastAPI(
     title="FitCoach AI API",
     description="API para la aplicación FitCoach AI",
     version="1.0.0"
+)
+
+# Agregar middleware de rate limiting
+app.add_middleware(
+    RateLimitMiddleware,
+    rate_limit=10,  # 10 solicitudes
+    time_window=60  # por minuto
 )
 
 # Agregar middleware de seguridad

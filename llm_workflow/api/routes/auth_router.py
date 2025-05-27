@@ -2,7 +2,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
-import time
 from typing import Dict, Any
 from pydantic import EmailStr
 from datetime import datetime, timedelta, timezone
@@ -14,36 +13,7 @@ from db.session import get_db
 from db.models.user import User
 from utils.email_service import send_verification_email, send_password_reset_email
 
-# Limita las solicitudes por IP
-request_counts: Dict[str, Dict[str, Any]] = {}
-
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
-
-# Middleware para rate limiting
-async def check_rate_limit(client_ip: str, limit: int = 5, window: int = 60) -> bool:
-    """
-    Verifica si una IP ha excedido el límite de solicitudes
-    limit: número máximo de solicitudes
-    window: periodo de tiempo en segundos
-    """
-    now = time.time()
-    
-    # Inicializar contador para esta IP si no existe
-    if client_ip not in request_counts:
-        request_counts[client_ip] = {"count": 0, "reset_at": now + window}
-        
-    # Si ya se pasó el tiempo de ventana, reiniciar contador
-    if now > request_counts[client_ip]["reset_at"]:
-        request_counts[client_ip] = {"count": 0, "reset_at": now + window}
-        
-    # Incrementar contador
-    request_counts[client_ip]["count"] += 1
-    
-    # Verificar límite
-    if request_counts[client_ip]["count"] > limit:
-        return False
-        
-    return True
 
 @auth_router.post("/register", response_model=schemas.user.User)
 async def register(
@@ -74,16 +44,8 @@ async def register(
 async def login(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(), 
-    db: AsyncSession = Depends(get_db),
-    client_ip: str = "127.0.0.1"  # En producción obtener la IP real del request
+    db: AsyncSession = Depends(get_db)
 ):
-    # Verificar rate limit
-    if not await check_rate_limit(client_ip, limit=5, window=60):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Demasiadas solicitudes. Inténtalo más tarde."
-        )
-    
     # Autenticar usuario
     user, is_valid = await auth_service.authenticate_user(db, form_data.username, form_data.password)
     if not user or not is_valid:
