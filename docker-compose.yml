@@ -40,7 +40,7 @@ services:
       - 8080:8080
 
   app:
-    build: ./llm_workflow
+    build: ./app
     depends_on:
       - ollama
       - db
@@ -65,7 +65,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./llm_workflow:/app
+      - ./app:/app
 volumes:
   ollama_data:
   pgdata:

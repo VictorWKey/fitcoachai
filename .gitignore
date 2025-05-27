@@ -1,1 +1,113 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyt
+*.cover
+*.py,cover
+*.pyre/
+*.pytype/
+*.mypy_cache/
+*.ruff_cache/
+*.hypothesis/
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.dylib
+
+# --- Virtual Environments ---
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# --- Packages & Dependency Tools ---
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+*.whl
+
+# Poetry
+poetry.lock
+
+# Pipenv
+Pipfile.lock
+
+# --- Project Files ---
+*.log
+*.sqlite3
+*.db
+*.bak
+*.swp
+*.tmp
+*.orig
+*.cache/
+.cache/
+
+# --- Editor Configs ---
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Testing ---
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+test-results/
+.tox/
+.nox/
+
+# --- Docker ---
+docker-compose.override.yml
+*.pid
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints
+
+# --- Redis dump files ---
+dump.rdb
+appendonly.aof
+
+# --- FastAPI Specific ---
+# Uvicorn access logs (optional)
+access.log
+error.log
+
+# --- dotenv / secrets ---
 .env
+.env.*
+!.env.example  # mantiene el ejemplo de variables
+
+# --- PyInstaller ---
+*.spec
+
+# --- Static / Media (si los generas en desarrollo) ---
+staticfiles/
+media/
+
+# --- Others ---
+*.bak
+*.tmp
+*.old
+*.orig
+*.rej
