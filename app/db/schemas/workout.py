@@ -1,37 +1,14 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, Annotated
 from datetime import datetime
-from enum import Enum
-
-
-class MuscleGroup(str, Enum):
-    CHEST = "chest"
-    BACK = "back"
-    LEGS_IN_GENERAL = "legs_in_general"
-    LEGS_CUADRICEPS_ENPHASIS = "legs_cuadriceps_enphasis"
-    LEGS_HAMSTRINGS_ENPHASIS = "legs_hamstrings_enphasis"
-    SHOULDERS = "shoulders"
-    ARMS = "arms"
-    ONLY_TRICEPS = "only_triceps"
-    ONLY_BICEPS = "only_biceps"
-    ABS = "abs"
-    CORE = "core"
-    FULL_BODY = "full_body"
-    CARDIO = "cardio"
-    
-class Category(str, Enum):
-    HYPERTROPHY = "hypertrophy"
-    STRENGTH = "strength"
-    ENDURANCE = "endurance"
-    BALANCE = "balance"
-    FLEXIBILITY = "flexibility"
-    COORDINATION = "coordination"
-    POWER = "power"
+from db.models.workout import MuscleGroup, Category
 
 # Base
 class WorkoutBase(BaseModel):
     muscle_group: MuscleGroup
     category: Category
+    is_finished: bool = False
+
 # Crear
 class WorkoutCreate(WorkoutBase):
     user_id: int
@@ -42,6 +19,7 @@ class WorkoutUpdate(BaseModel):
     muscle_group: Optional[MuscleGroup] = None
     category: Optional[Category] = None
     start_time: Optional[datetime] = None
+    is_finished: Optional[bool] = None
     
 # Respuesta
 class Workout(WorkoutBase):
@@ -53,3 +31,46 @@ class Workout(WorkoutBase):
 
     class Config:
         from_attributes = True
+
+# Schema para inferencia de tipo de entrenamiento
+class WorkoutTypeInference(BaseModel):
+    """
+    Schema para inferir el tipo de entrenamiento basado en ejercicios.
+    Usado por el LLM para determinar grupo muscular y categoría.
+    """
+    muscle_group: Annotated[
+        MuscleGroup,
+        Field(
+            description="""
+            El grupo muscular principal del entrenamiento. Debe ser uno de los siguientes valores:
+            - chest: Ejercicios principalmente para pecho (press de banca, aperturas, etc.)
+            - back: Ejercicios principalmente para espalda (dominadas, remo, pull-downs, etc.)
+            - legs_in_general: Ejercicios para piernas sin énfasis específico
+            - legs_cuadriceps_enphasis: Ejercicios para piernas con énfasis en cuádriceps (sentadillas, prensa, etc.)
+            - legs_hamstrings_enphasis: Ejercicios para piernas con énfasis en isquiotibiales (peso muerto, curl de piernas, etc.)
+            - shoulders: Ejercicios para hombros (press militar, elevaciones laterales, etc.)
+            - arms: Ejercicios para brazos en general
+            - only_triceps: Ejercicios específicamente para tríceps
+            - only_biceps: Ejercicios específicamente para bíceps
+            - abs: Ejercicios para abdominales
+            - core: Ejercicios para el núcleo (abdominales, oblicuos, espalda baja)
+            - full_body: Entrenamiento de cuerpo completo
+            - cardio: Ejercicios cardiovasculares
+            """
+        )
+    ]
+    category: Annotated[
+        Category,
+        Field(
+            description="""
+            La categoría del entrenamiento basada en las repeticiones, peso y tipo de ejercicios:
+            - strength: Fuerza (típicamente 1-5 repeticiones con peso alto)
+            - hypertrophy: Hipertrofia o crecimiento muscular (típicamente 6-12 repeticiones con peso moderado)
+            - endurance: Resistencia muscular (típicamente más de 12 repeticiones con peso bajo)
+            - balance: Ejercicios de equilibrio
+            - flexibility: Ejercicios de flexibilidad o estiramiento
+            - coordination: Ejercicios que enfatizan la coordinación
+            - power: Ejercicios de potencia (movimientos explosivos)
+            """
+        )
+    ]

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from typing import Annotated
 from db.schemas.user import User
-from api.services import get_current_user, process_agent
+from api.services import get_current_verified_user, process_agent
 from db.session import get_db
 from db.models.user import User
 
@@ -26,7 +26,7 @@ class ChatInput(BaseModel):
 @chat_router.post("/")
 async def chat(
     request: Request,
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_verified_user)],
     chat_input: ChatInput
 ):
     """
@@ -34,7 +34,7 @@ async def chat(
 
     Args:
         request (Request): FastAPI request object.
-        current_user (User): Authenticated user.
+        current_user (User): Authenticated and verified user.
         chat_input (ChatInput): Chat message input from user.
 
     Returns:
@@ -43,7 +43,8 @@ async def chat(
     config = {
         "configurable": {
             "thread_id": str(current_user.id),
-            "user_id": current_user.id
+            "user_id": current_user.id,
+            "llm": request.app.state.llm
         }
     }   
 

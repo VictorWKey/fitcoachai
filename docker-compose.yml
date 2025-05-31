@@ -61,7 +61,7 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       CORS_ORIGINS: ${CORS_ORIGINS}
       WEBSITE_URL: ${WEBSITE_URL}
-      REDIS_URL: redis://redis:6379/0
+      REDIS_URL: ${REDIS_URL}
     ports:
       - "8000:8000"
     volumes:

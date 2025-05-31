@@ -3,7 +3,7 @@ ORM model for the workouts table.
 Defines the structure and relationships of workouts in the database.
 """
 
-from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import enum
@@ -74,6 +74,7 @@ class Workout(Base):
         muscle_group: Main muscle group of the workout
         category: Category of the workout (strength, hypertrophy, etc.)
         start_time: Start date and time of the workout
+        is_finished: Indicates if the workout has been finished
         created_at: Creation date of the record
         updated_at: Date of the last update to the record
         
@@ -88,6 +89,7 @@ class Workout(Base):
 
     muscle_group = Column(Enum(MuscleGroup), nullable=False)
     category = Column(Enum(Category), nullable=False)
+    is_finished = Column(Boolean, default=False, nullable=False)
 
     start_time = Column(
         DateTime(timezone=True), 

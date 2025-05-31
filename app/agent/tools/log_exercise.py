@@ -26,7 +26,21 @@ async def log_exercise(
     """Registra una serie individual del entrenamiento del usuario en la base de datos, incluyendo ejercicio, repeticiones, peso, RIR y comentarios opcionales cuando el usuario pone información sobre lo que podria ser una serie de entrenamiento. El usuario no necesariamente tiene que especificar que se registre una serie en la base de datos, puede simplemente escribir lo que hizo en el entrenamiento.
     """
     user_id: int = config["configurable"].get("user_id")
-    workout_id = await get_or_create_workout_id(user_id)
+    llm = config["configurable"].get("llm")
+    
+    # Prepare exercise data for workout type inference
+    exercise_data = {
+        'exercise_name': exercise_name,
+        'set_number': set_number,
+        'reps': reps,
+        'weight': weight,
+        'weight_unit': weight_unit,
+        'rir': rir,
+        'notes': notes
+    }
+    
+    # Get or create workout with exercise data for inference
+    workout_id = await get_or_create_workout_id(user_id, exercise_data, llm)
     
     async with db_session() as db:
         await create_exercise_log(db, ExerciseLogCreate(

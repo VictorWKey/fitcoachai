@@ -36,7 +36,7 @@ async def register(
     """
     await auth_service.check_user_exists(db, user.email, user.username)
     
-    verification_token = auth_service.generate_verification_token()
+    verification_token = AuthService.generate_verification_token()
     verification_expires = datetime.now(timezone.utc) + timedelta(hours=24)
     
     db_user = await UserService.create_user(

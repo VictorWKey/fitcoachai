@@ -9,12 +9,14 @@ from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_openai import ChatOpenAI
 from agent.agent import get_agent
 from agent.tools.log_exercise import log_exercise
+from agent.tools.finish_workout import finish_workout
 from db import init_db
 from api.routes import api_router
 from middleware import RateLimitMiddleware, SecurityHeadersMiddleware, setup_csrf_protection
 from config.app_settings import settings
 from config.db_settings import db_settings
 from utils.model_utils import wait_for_server_and_load_model
+from jobs.auto_finish_workouts import setup_auto_finish_job
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,18 +50,25 @@ async def lifespan(app: FastAPI):
             model=settings.MODEL_NAME,
             temperature=0,
             max_tokens=1000,
-        ).bind_tools([log_exercise])
+        ).bind_tools([log_exercise, finish_workout])
 
         # Crear el agente
-        agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise])
+        agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise, finish_workout])
         
         # Guardar referencias en el estado de la aplicación
         app.state.pool = pool
         app.state.llm = llm
         app.state.checkpointer = checkpointer
         app.state.agent = agent
+        
+        # Configurar el job para finalizar automáticamente los entrenamientos inactivos
+        await setup_auto_finish_job(app)
 
         yield
+        
+        # Detener el scheduler al cerrar la aplicación
+        if hasattr(app.state, "scheduler"):
+            app.state.scheduler.shutdown()
 
 # Crear la aplicación FastAPI
 app = FastAPI(
