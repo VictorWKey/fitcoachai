@@ -1,5 +1,5 @@
 """
-Punto de entrada principal para la aplicación FitCoach AI.
+Main entry point for the FitCoach AI application.
 """
 
 from fastapi import FastAPI, Request
@@ -17,22 +17,23 @@ from config.app_settings import settings
 from config.db_settings import db_settings
 from utils.model_utils import wait_for_server_and_load_model
 from jobs.auto_finish_workouts import setup_auto_finish_job
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Configuración del ciclo de vida de la aplicación.
+    Application lifespan configuration.
     
     Args:
-        app: La instancia de FastAPI
+        app: The FastAPI instance
     """
-    # Comentado porque solo se necesita cuando se usa Ollama localmente
+    # Uncomment when using Ollama locally
     # await wait_for_server_and_load_model()
     
-    # Inicializar la base de datos
     await init_db()
     
-    # Configurar el pool de conexiones para PostgreSQL
+    # Connection pool configuration
     async with AsyncConnectionPool(
         conninfo=db_settings.PSYCOPG_DATABASE_URL,
         min_size=db_settings.POOL_SIZE,
@@ -41,36 +42,34 @@ async def lifespan(app: FastAPI):
         max_lifetime=db_settings.POOL_RECYCLE,
         kwargs=db_settings.CONNECTION_KWARGS
     ) as pool:
-        # Configurar el checkpointer para LangGraph
+        # Configure langgraph checkpointer
         checkpointer = AsyncPostgresSaver(pool)
         await checkpointer.setup()
 
-        # Configurar el modelo de lenguaje
         llm = ChatOpenAI(
             model=settings.MODEL_NAME,
             temperature=0,
             max_tokens=1000,
         ).bind_tools([log_exercise, finish_workout])
 
-        # Crear el agente
         agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise, finish_workout])
         
-        # Guardar referencias en el estado de la aplicación
         app.state.pool = pool
         app.state.llm = llm
         app.state.checkpointer = checkpointer
         app.state.agent = agent
         
-        # Configurar el job para finalizar automáticamente los entrenamientos inactivos
-        await setup_auto_finish_job(app)
+        await setup_auto_finish_job(
+            app,
+            enable_job=settings.ENABLE_AUTO_FINISH_JOB,
+            interval_minutes=settings.AUTO_FINISH_JOB_INTERVAL
+        )
 
         yield
         
-        # Detener el scheduler al cerrar la aplicación
         if hasattr(app.state, "scheduler"):
             app.state.scheduler.shutdown()
 
-# Crear la aplicación FastAPI
 app = FastAPI(
     lifespan=lifespan,
     title=settings.APP_TITLE,
@@ -78,7 +77,6 @@ app = FastAPI(
     version=settings.APP_VERSION
 )
 
-# Configurar middlewares
 app.add_middleware(
     RateLimitMiddleware,
     rate_limit=10,
@@ -86,10 +84,6 @@ app.add_middleware(
 )
 
 app.add_middleware(SecurityHeadersMiddleware)
-
-# Configurar CORS y TrustedHost
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 app.add_middleware(
     TrustedHostMiddleware,
@@ -105,13 +99,6 @@ app.add_middleware(
     expose_headers=["X-CSRF-Token"]
 )
 
-# Configurar protección CSRF
 setup_csrf_protection(app)
 
-# Incluir rutas de la API
 app.include_router(api_router)
-
-
-
-
-

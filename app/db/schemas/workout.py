@@ -3,25 +3,22 @@ from typing import Optional, Annotated
 from datetime import datetime
 from db.models.workout import MuscleGroup, Category
 
-# Base
 class WorkoutBase(BaseModel):
     muscle_group: MuscleGroup
     category: Category
     is_finished: bool = False
 
-# Crear
 class WorkoutCreate(WorkoutBase):
     user_id: int
     start_time: Optional[datetime] = None  
 
-# Actualizar
 class WorkoutUpdate(BaseModel):
     muscle_group: Optional[MuscleGroup] = None
     category: Optional[Category] = None
     start_time: Optional[datetime] = None
     is_finished: Optional[bool] = None
     
-# Respuesta
+# Response
 class Workout(WorkoutBase):
     id: int
     user_id: int
@@ -32,7 +29,7 @@ class Workout(WorkoutBase):
     class Config:
         from_attributes = True
 
-# Schema para inferencia de tipo de entrenamiento
+# Schema for workout type inference
 class WorkoutTypeInference(BaseModel):
     """
     Schema para inferir el tipo de entrenamiento basado en ejercicios.

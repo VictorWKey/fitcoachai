@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker
 import os
 from config.db_settings import db_settings
 
-# Create the asynchronous database engine
 engine = create_async_engine(
     db_settings.SQLALCHEMY_DATABASE_URL,
     pool_size=5,

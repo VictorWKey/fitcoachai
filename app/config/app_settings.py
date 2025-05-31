@@ -26,5 +26,9 @@ class AppSettings:
     
     # OpenAI (for ChatOpenAI)
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    
+    # Workout auto-finish backup job settings
+    ENABLE_AUTO_FINISH_JOB: bool = os.getenv("ENABLE_AUTO_FINISH_JOB", "false").lower() == "true"
+    AUTO_FINISH_JOB_INTERVAL: int = int(os.getenv("AUTO_FINISH_JOB_INTERVAL", "30"))
 
 settings = AppSettings()

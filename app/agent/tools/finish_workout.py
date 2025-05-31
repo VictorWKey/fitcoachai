@@ -27,7 +27,6 @@ async def finish_workout(
     llm = config["configurable"].get("llm")
     
     async with db_session() as db:
-        # Find the user's active workout
         active_workout = await get_active_workout(db, user_id)
         
         if not active_workout:
@@ -36,7 +35,6 @@ async def finish_workout(
                 "message": "No tienes un entrenamiento activo para finalizar."
             }
         
-        # Finalize the workout
         updated_workout = await finalize_workout(db, active_workout.id, llm)
         
         if not updated_workout:
