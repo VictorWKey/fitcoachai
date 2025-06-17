@@ -15,7 +15,7 @@ const getApiBaseUrl = () => {
     // Para web
     return 'http://localhost:8000';
   }
-  
+
   // En producción, usa la URL de tu API en producción
   return 'https://tu-api-produccion.com';
 };
@@ -33,10 +33,28 @@ export const API_ENDPOINTS = {
   VERIFY_EMAIL: '/auth/verify-email',
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
-  
+  VERIFY_RESET_TOKEN: '/auth/reset-password/verify',
+  RESEND_VERIFICATION: '/auth/resend-verification',
+
   // Chat
   CHAT: '/chat/',
   CHAT_HISTORY: '/chat/history',
+
+  // Workouts
+  WORKOUTS: '/workouts/',
+  WORKOUT_ACTIVE: '/workouts/active',
+  WORKOUT_BY_ID: (id) => `/workouts/${id}`,
+  WORKOUT_FINISH: (id) => `/workouts/${id}/finish`,
+  WORKOUT_EXERCISES: (id) => `/workouts/${id}/exercises`,
+  WORKOUT_EXERCISE_BY_ID: (workoutId, exerciseId) => `/workouts/${workoutId}/exercises/${exerciseId}`,
+
+  // Exercises
+  EXERCISES_RECENT: '/exercises/recent',
+  EXERCISES_POPULAR: '/exercises/popular',
+  EXERCISES_STATS: '/exercises/stats',
+  EXERCISES_SEARCH: '/exercises/search',
+  EXERCISES_PROGRESS: (exerciseName) => `/exercises/progress/${exerciseName}`,
+  EXERCISES_CATALOG: '/exercises/catalog'
 };
 
 // Configuración de los headers para las peticiones
