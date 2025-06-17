@@ -16,9 +16,9 @@ from db.schemas.token import TokenData, Token, TokenBlacklist as TokenBlacklistS
 from db.models.token import TokenBlacklist
 from db.session import get_db
 from db.models.user import User
-from core.services.auth_service import AuthService
-from core.services.user_service import UserService
-from exceptions.auth_exceptions import (
+from core.services.auth import CoreAuthService
+from core.services.user import CoreUserService
+from exceptions.auth import (
     InvalidCredentialsException, 
     InvalidTokenException,
     NotVerifiedException
@@ -55,7 +55,7 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> T
         Tuple (user, is_valid).
     """
     try:
-        return await UserService.authenticate_user(db, username, password)
+        return await CoreUserService.authenticate_user(db, username, password)
     except (InvalidCredentialsException, HTTPException) as e:
         logger.warning(f"Failed login attempt for user: {username}")
         if isinstance(e, InvalidCredentialsException):
@@ -86,14 +86,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     )
     
     try:
-        payload = AuthService.decode_token(token)
+        payload = CoreAuthService.decode_token(token)
         user_id: str = payload.get("sub")
         jti: str = payload.get("jti")
         
         if user_id is None or jti is None:
             raise credentials_exception
         
-        await AuthService.verify_token_not_blacklisted(db, jti)
+        await CoreAuthService.verify_token_not_blacklisted(db, jti)
             
         token_data = TokenData(sub=int(user_id), jti=jti)
         

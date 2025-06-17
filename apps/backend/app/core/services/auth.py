@@ -10,7 +10,7 @@ from jose import JWTError, jwt
 from db.models.user import User
 from db.models.token import TokenBlacklist
 from db.schemas.token import TokenData
-from exceptions.auth_exceptions import (
+from exceptions.auth import (
     InvalidCredentialsException,
     InvalidTokenException,
     TokenExpiredException
@@ -19,7 +19,7 @@ from config.security_settings import security_settings
 
 logger = logging.getLogger(__name__)
 
-class AuthService:
+class CoreAuthService:
     """
     Service for handling authentication and token management.
     """

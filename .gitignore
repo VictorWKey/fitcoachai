@@ -150,3 +150,5 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Cursor rules
+**/.cursor/

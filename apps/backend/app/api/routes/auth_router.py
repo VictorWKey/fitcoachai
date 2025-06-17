@@ -11,8 +11,8 @@ import logging
 
 from db.crud.user import get_password_hash
 from db import schemas, crud
-from api.services import auth_service
-from core.services import AuthService, UserService
+from api.services import auth
+from core.services import CoreAuthService, CoreUserService
 from db.session import get_db
 from db.models.user import User
 from utils.email_service import send_verification_email, send_password_reset_email
@@ -49,10 +49,10 @@ async def register(
     """
     try:
         # Check if user exists and get additional info
-        check_result = await auth_service.check_user_exists(db, user.email, user.username)
+        check_result = await auth.check_user_exists(db, user.email, user.username)
         
         # Generate new verification token and expiration
-        verification_token = AuthService.generate_verification_token()
+        verification_token = CoreAuthService.generate_verification_token()
         verification_expires = datetime.now(timezone.utc) + timedelta(hours=24)
         
         # Handle existing unverified user with the same email
@@ -87,7 +87,7 @@ async def register(
                 logger.info(f"Deleted unverified user with username: {user.username}")
             
             # Create new user
-            db_user = await UserService.create_user(
+            db_user = await CoreUserService.create_user(
                 db, 
                 user, 
                 verification_token=verification_token,
@@ -128,15 +128,15 @@ async def login(
     Returns:
         A dictionary with access token, refresh token, and token type.
     """
-    user, is_valid = await auth_service.authenticate_user(db, form_data.username, form_data.password)
+    user, is_valid = await auth.authenticate_user(db, form_data.username, form_data.password)
     if not user or not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail="Nombre de usuario o contraseña incorrectos"
         )
     
-    access_token = AuthService.create_access_token(data={"sub": str(user.id)})
-    refresh_token = AuthService.create_refresh_token(data={"sub": str(user.id)})
+    access_token = CoreAuthService.create_access_token(data={"sub": str(user.id)})
+    refresh_token = CoreAuthService.create_refresh_token(data={"sub": str(user.id)})
     
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
@@ -158,7 +158,7 @@ async def refresh_token(
         A new set of access and refresh tokens.
     """
     try:
-        payload = AuthService.decode_token(token.refresh_token)
+        payload = CoreAuthService.decode_token(token.refresh_token)
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(
@@ -168,7 +168,7 @@ async def refresh_token(
         
         # Verificar que el refresh token no esté en la blacklist
         jti = payload.get("jti")
-        await AuthService.verify_token_not_blacklisted(db, jti)
+        await CoreAuthService.verify_token_not_blacklisted(db, jti)
         
         user = await crud.user.get_user(db, int(user_id))
         if user is None:
@@ -177,10 +177,10 @@ async def refresh_token(
                 detail="User not found"
             )
             
-        await AuthService.revoke_token(db, token.refresh_token)
+        await CoreAuthService.revoke_token(db, token.refresh_token)
         
-        access_token = AuthService.create_access_token(data={"sub": user_id})
-        refresh_token = AuthService.create_refresh_token(data={"sub": user_id})
+        access_token = CoreAuthService.create_access_token(data={"sub": user_id})
+        refresh_token = CoreAuthService.create_refresh_token(data={"sub": user_id})
         
         return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
         
@@ -193,7 +193,7 @@ async def refresh_token(
 @auth_router.post("/logout")
 async def logout(
     logout_payload: schemas.token.LogoutRequest,
-    token: str = Depends(auth_service.oauth2_scheme),
+    token: str = Depends(auth.oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -208,10 +208,10 @@ async def logout(
         A message confirming successful logout.
     """
     # Revocar access token
-    await AuthService.revoke_token(db, token)
+    await CoreAuthService.revoke_token(db, token)
     # Revocar refresh token si se proporciona
     if logout_payload.refresh_token:
-        await AuthService.revoke_token(db, logout_payload.refresh_token)
+        await CoreAuthService.revoke_token(db, logout_payload.refresh_token)
     return {"message": "Logout successful"}
 
 @auth_router.post("/verify-email")
@@ -292,7 +292,7 @@ async def resend_verification(
             }
         
         # Generate new verification token and expiration
-        verification_token = AuthService.generate_verification_token()
+        verification_token = CoreAuthService.generate_verification_token()
         verification_expires = datetime.now(timezone.utc) + timedelta(hours=24)
         
         # Update user with new token
@@ -335,7 +335,7 @@ async def forgot_password(
     if not user:
         return {"message": "Si tu cuenta existe, recibirás un email con instrucciones para restablecer tu contraseña"}
     
-    reset_token = AuthService.generate_verification_token()
+    reset_token = CoreAuthService.generate_verification_token()
     reset_expires = datetime.now(timezone.utc) + timedelta(hours=1)  # Expira en 1 hora
     
     user.reset_password_token = reset_token
@@ -430,7 +430,7 @@ async def reset_password(
     user.reset_password_token = None
     user.reset_password_expires = None
     
-    await AuthService.revoke_all_user_tokens(db, user.id)
+    await CoreAuthService.revoke_all_user_tokens(db, user.id)
     
     await db.commit()
     

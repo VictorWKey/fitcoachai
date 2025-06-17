@@ -4,7 +4,7 @@ API layer-specific services.
 These services adapt core services for use in API routes.
 """
 
-from .auth_service import (
+from .auth import (
     oauth2_scheme,
     authenticate_user,
     get_current_user,
@@ -12,7 +12,7 @@ from .auth_service import (
     check_user_exists,
 )
 
-from .chat_service import process_agent
+from .chat import process_agent
 
 __all__ = [
     "oauth2_scheme",

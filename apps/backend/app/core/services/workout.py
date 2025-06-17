@@ -5,9 +5,9 @@ from sqlalchemy import select, and_, func
 from db.models.workout import Workout
 from db.models.exercise_log import ExerciseLog
 from db.models.user import User
-from exceptions.api_exceptions import NotFoundException
+from exceptions.api import NotFoundException
 
-class WorkoutService:
+class CoreWorkoutService:
     """
     Service for handling business logic related to workouts.
     """

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from db.models.user import User
 from db.schemas.user import UserCreate
 from db.crud.user import get_password_hash, verify_password, get_user_by_username
-from exceptions.auth_exceptions import (
+from exceptions.auth import (
     UserExistsException,
     InvalidCredentialsException,
     AccountLockedException
@@ -15,7 +15,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class UserService:
+class CoreUserService:
     """
     Service for handling business logic related to users.
     """
@@ -184,7 +184,7 @@ class UserService:
         Returns:
             Updated user or None if not found
         """
-        user = await UserService.get_user_profile(db, user_id)
+        user = await CoreUserService.get_user_profile(db, user_id)
         if not user:
             return None
             

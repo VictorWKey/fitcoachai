@@ -2,8 +2,8 @@
 Servicios de negocio de la aplicación.
 """
 
-from .user_service import UserService
-from .workout_service import WorkoutService
-from .auth_service import AuthService
+from .user import CoreUserService
+from .workout import CoreWorkoutService
+from .auth import CoreAuthService
 
-__all__ = ["UserService", "WorkoutService", "AuthService"] 
+__all__ = ["CoreUserService", "CoreWorkoutService", "CoreAuthService"] 
