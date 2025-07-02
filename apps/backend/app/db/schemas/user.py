@@ -2,12 +2,14 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional
 from datetime import datetime
 import re
+from db.models.workout import TrainingDiscipline
 
 # Base schema for User
 class UserBase(BaseModel):
     username: str
     email: EmailStr
     full_name: Optional[str] = None
+    preferred_discipline: TrainingDiscipline = TrainingDiscipline.HYPERTROPHY
     is_active: bool = True
 
 # Schema for creating a User
@@ -38,14 +40,8 @@ class UserCreate(UserBase):
         """
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
         if not re.search(r'[0-9]', v):
             raise ValueError('Password must contain at least one digit')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
-            raise ValueError('Password must contain at least one special character')
         return v
 
 # Schema for updating a User
@@ -53,6 +49,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    preferred_discipline: Optional[TrainingDiscipline] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
 
@@ -75,20 +72,16 @@ class UserUpdate(BaseModel):
             return v
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
         if not re.search(r'[0-9]', v):
             raise ValueError('Password must contain at least one digit')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
-            raise ValueError('Password must contain at least one special character')
         return v
 
 # Schema for User in the database
 class UserInDB(UserBase):
     id: int
     hashed_password: str
+    has_chat_history: bool = False
+    system_message_needs_update: bool = False
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -97,6 +90,8 @@ class UserInDB(UserBase):
 # Schema for User response
 class User(UserBase):
     id: int
+    has_chat_history: bool = False
+    system_message_needs_update: bool = False
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -145,12 +140,6 @@ class PasswordReset(BaseModel):
         """
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters long')
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Password must contain at least one uppercase letter')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Password must contain at least one lowercase letter')
         if not re.search(r'[0-9]', v):
             raise ValueError('Password must contain at least one digit')
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
-            raise ValueError('Password must contain at least one special character')
         return v

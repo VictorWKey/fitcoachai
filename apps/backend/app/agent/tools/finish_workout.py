@@ -3,28 +3,25 @@ from langchain_core.tools import tool
 from db.crud.workout import get_active_workout, finalize_workout
 from db.session import db_session
 from langgraph.prebuilt import InjectedState
-from typing import Annotated
+from typing import Annotated, Optional
 from langchain_core.runnables import RunnableConfig
-
-class FinishWorkoutResponse(BaseModel):
-    """Response model for finish_workout tool"""
-    success: bool
-    message: str
-    workout_id: int = None
-    muscle_group: str = None
-    category: str = None
 
 @tool("finish_workout")
 async def finish_workout(
     config: RunnableConfig
 ) -> dict:
     """
-    Finaliza el entrenamiento actual del usuario, analizando todos los ejercicios realizados para determinar
-    el grupo muscular principal y la categoría del entrenamiento. Usa esta herramienta cuando el usuario
+    Usa esta herramienta cuando el usuario
     indique que ha terminado su entrenamiento o quiera finalizarlo.
     """
-    user_id: int = config["configurable"].get("user_id")
-    llm = config["configurable"].get("llm")
+    user_id = config.get("configurable", {}).get("user_id")
+    llm = config.get("configurable", {}).get("llm")
+    
+    if not user_id:
+        return {
+            "success": False,
+            "message": "Usuario no identificado."
+        }
     
     async with db_session() as db:
         active_workout = await get_active_workout(db, user_id)
@@ -35,7 +32,7 @@ async def finish_workout(
                 "message": "No tienes un entrenamiento activo para finalizar."
             }
         
-        updated_workout = await finalize_workout(db, active_workout.id, llm)
+        updated_workout = await finalize_workout(db, getattr(active_workout, 'id'), llm)
         
         if not updated_workout:
             return {

@@ -8,7 +8,6 @@ from sqlalchemy.future import select
 from typing import Optional, List
 from ..models.workout import Workout
 from ..schemas.workout import WorkoutCreate, WorkoutUpdate
-from db.crud.workout_inference import infer_workout_type_from_all_exercises
 
 async def get_workout(db: AsyncSession, workout_id: int) -> Optional[Workout]:
     """
@@ -40,7 +39,7 @@ async def get_user_workouts(db: AsyncSession, user_id: int) -> List[Workout]:
         .where(Workout.user_id == user_id)
         .order_by(Workout.start_time.desc())
     )
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 async def get_active_workout(db: AsyncSession, user_id: int) -> Optional[Workout]:
     """
@@ -142,18 +141,11 @@ async def finalize_workout(db: AsyncSession, workout_id: int, llm=None) -> Optio
         return None
     
     # If the workout is already finished, just return it
-    if workout.is_finished:
+    if getattr(workout, 'is_finished'):
         return workout
     
-    # Infer workout type from all exercises
-    if llm:
-        inference = await infer_workout_type_from_all_exercises(db, workout_id, llm)
-        if inference:
-            workout.muscle_group = inference.muscle_group
-            workout.category = inference.category
-    
     # Mark as finished
-    workout.is_finished = True
+    setattr(workout, 'is_finished', True)
     
     # Save changes
     await db.commit()

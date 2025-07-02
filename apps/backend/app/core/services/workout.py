@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
 from db.models.workout import Workout
-from db.models.exercise_log import ExerciseLog
+from db.models.discipline_exercise_logs.hypertrophy import HypertrophyLog
 from db.models.user import User
 from exceptions.api import NotFoundException
 
@@ -66,7 +66,7 @@ class CoreWorkoutService:
         reps: int,
         weight: Optional[float] = None,
         notes: Optional[str] = None
-    ) -> ExerciseLog:
+    ) -> HypertrophyLog:
         """
         Logs an exercise in a workout.
         
@@ -99,14 +99,14 @@ class CoreWorkoutService:
         if not workout:
             raise NotFoundException(f"Workout with ID {workout_id} not found for this user")
         
-        exercise_log = ExerciseLog(
+        exercise_log = HypertrophyLog(
             workout_id=workout_id,
             exercise_name=exercise_name,
             sets=sets,
             reps=reps,
             weight=weight,
             notes=notes,
-            logged_at=datetime.now(timezone.utc)
+            exercise_date=datetime.now(timezone.utc)
         )
         
         db.add(exercise_log)
@@ -167,8 +167,8 @@ class CoreWorkoutService:
         
         # Count total exercises
         exercise_count = await db.execute(
-            select(func.count(ExerciseLog.id))
-            .join(Workout, ExerciseLog.workout_id == Workout.id)
+            select(func.count(HypertrophyLog.id))
+            .join(Workout, HypertrophyLog.workout_id == Workout.id)
             .where(Workout.user_id == user_id)
         )
         total_exercises = exercise_count.scalar_one()
@@ -176,13 +176,13 @@ class CoreWorkoutService:
         # Get the most frequent exercises
         top_exercises = await db.execute(
             select(
-                ExerciseLog.exercise_name,
-                func.count(ExerciseLog.id).label("count")
+                HypertrophyLog.exercise_name,
+                func.count(HypertrophyLog.id).label("count")
             )
-            .join(Workout, ExerciseLog.workout_id == Workout.id)
+            .join(Workout, HypertrophyLog.workout_id == Workout.id)
             .where(Workout.user_id == user_id)
-            .group_by(ExerciseLog.exercise_name)
-            .order_by(func.count(ExerciseLog.id).desc())
+            .group_by(HypertrophyLog.exercise_name)
+            .order_by(func.count(HypertrophyLog.id).desc())
             .limit(5)
         )
         

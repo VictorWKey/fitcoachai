@@ -28,6 +28,15 @@ class NotFoundException(APIException):
     def __init__(self, detail: str = "Resource not found"):
         super().__init__(detail=detail, status_code=status.HTTP_404_NOT_FOUND)
 
+class NotFoundError(NotFoundException):
+    """Alias for NotFoundException for backward compatibility."""
+    pass
+
+class ForbiddenError(APIException):
+    """Exception for forbidden access."""
+    def __init__(self, detail: str = "Access forbidden"):
+        super().__init__(detail=detail, status_code=status.HTTP_403_FORBIDDEN)
+
 class DatabaseException(APIException):
     """Exception for database errors."""
     def __init__(self, detail: str = "Database error"):

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 from ..models.user import User
 from ..schemas.user import UserCreate, UserUpdate
+from ..models.workout import TrainingDiscipline
 from passlib.context import CryptContext
 from sqlalchemy import select
 from datetime import datetime, timezone
@@ -100,7 +101,7 @@ async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[U
     result = await db.execute(
         select(User).offset(skip).limit(limit)
     )
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 async def create_user(
     db: AsyncSession, 
@@ -185,3 +186,94 @@ async def delete_user(db: AsyncSession, user_id: int) -> bool:
     await db.delete(db_user)
     await db.commit()
     return True
+
+async def get_user_training_discipline(db: AsyncSession, user_id: int) -> Optional[TrainingDiscipline]:
+    """
+    Gets the user's preferred training discipline.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user
+        
+    Returns:
+        TrainingDiscipline: User's preferred discipline or None if user doesn't exist
+    """
+    user = await get_user(db, user_id)
+    return getattr(user, 'preferred_discipline', None) if user else None
+
+async def update_user_discipline(db: AsyncSession, user_id: int, discipline: TrainingDiscipline) -> Optional[User]:
+    """
+    Updates a user's preferred training discipline and marks that system message needs update.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user to update
+        discipline: New training discipline
+        
+    Returns:
+        User: The updated user or None if it doesn't exist
+    """
+    db_user = await get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    # Check if discipline actually changed
+    current_discipline = getattr(db_user, 'preferred_discipline', None)
+    if current_discipline != discipline:
+        # Update discipline and mark system message for update
+        setattr(db_user, 'preferred_discipline', discipline)
+        setattr(db_user, 'system_message_needs_update', True)
+        
+        await db.commit()
+        await db.refresh(db_user)
+    
+    return db_user
+
+async def update_user_chat_history_status(db: AsyncSession, user_id: int) -> Optional[User]:
+    """
+    Marks that the user has started their first chat conversation.
+    This is used to optimize chat history checks by avoiding checkpointer queries.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user to update
+        
+    Returns:
+        User: The updated user or None if it doesn't exist
+    """
+    db_user = await get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    # Only update if not already set to avoid unnecessary DB writes
+    current_status = getattr(db_user, 'has_chat_history', False)
+    if not current_status:
+        setattr(db_user, 'has_chat_history', True)
+        await db.commit()
+        await db.refresh(db_user)
+    
+    return db_user
+
+async def reset_system_message_update_flag(db: AsyncSession, user_id: int) -> Optional[User]:
+    """
+    Resets the system_message_needs_update flag after the system message has been updated.
+    
+    Args:
+        db: Database session
+        user_id: ID of the user to update
+        
+    Returns:
+        User: The updated user or None if it doesn't exist
+    """
+    db_user = await get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    # Only update if flag is currently True to avoid unnecessary DB writes
+    current_flag = getattr(db_user, 'system_message_needs_update', False)
+    if current_flag:
+        setattr(db_user, 'system_message_needs_update', False)
+        await db.commit()
+        await db.refresh(db_user)
+    
+    return db_user

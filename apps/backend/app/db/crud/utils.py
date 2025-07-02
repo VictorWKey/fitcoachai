@@ -5,17 +5,21 @@ Provides helper functions for common database operations.
 
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.models.workout import Workout
 from db.session import db_session
-from db.models.workout import Category, MuscleGroup
-from db.crud.workout_inference import infer_workout_type_from_first_exercise
-from db.crud.workout import finalize_workout
+from db.models.workout import TrainingDiscipline, MuscleGroup
+# from db.crud.workout_inference import infer_workout_type_from_first_exercise
+from db.crud.workout import finalize_workout, get_workout
 from db.schemas.workout import WorkoutCreate
+from db.crud.user import get_user_training_discipline
+from .exercise_log_factory import ExerciseLogCRUDFactory
+from typing import Optional, List, Any
 
 # Time limit to consider a workout as active
 WORKOUT_TIMEOUT_MINUTES = 90
 
-async def get_or_create_workout_id(user_id: int, exercise_log_data=None, llm=None) -> int:
+async def get_or_create_workout_id(user_id: int, llm=None) -> int:
     """
     Gets the ID of the user's active workout or creates a new one if it doesn't exist.
     
@@ -69,38 +73,72 @@ async def get_or_create_workout_id(user_id: int, exercise_log_data=None, llm=Non
             create_new_workout = True
         
         if create_new_workout:
-            # Default values
-            muscle_group = MuscleGroup.FULL_BODY
-            category = Category.HYPERTROPHY
-            
-            # If we have exercise data, use it to infer workout type
-            if exercise_log_data and exercise_log_data.get('exercise_name') and llm:
-                # Infer workout type using LLM
-                inference_result = await infer_workout_type_from_first_exercise(
-                    db=db,
-                    user_id=user_id,
-                    exercise_name=exercise_log_data.get('exercise_name'),
-                    reps=exercise_log_data.get('reps'),
-                    weight=exercise_log_data.get('weight'),
-                    rir=exercise_log_data.get('rir'),
-                    llm=llm
-                )
-                
-                muscle_group = MuscleGroup(inference_result.muscle_group)
-                category = Category(inference_result.category)
+            discipline = await get_user_training_discipline(db, user_id) or TrainingDiscipline.HYPERTROPHY
             
             # Create the new workout with the determined type
-            new_workout = Workout(
-                user_id=user_id, 
-                category=category, 
-                muscle_group=muscle_group, 
+            workout_data = WorkoutCreate(
+                user_id=user_id,
+                discipline=discipline,
                 start_time=now,
                 is_finished=False
             )
-            db.add(new_workout)
-            await db.commit()
-            await db.refresh(new_workout)
-            return new_workout.id
+            
+            # Create workout using the CRUD function
+            from db.crud.workout import create_workout
+            new_workout = await create_workout(db, workout_data)
+            return getattr(new_workout, 'id')
 
         # If there is a recent one, reuse that workout_id
-        return last_workout.id
+        return getattr(last_workout, 'id')
+
+async def get_exercise_log_by_workout_discipline(
+    db: AsyncSession, 
+    exercise_id: int, 
+    workout_id: int
+) -> Optional[Any]:
+    """
+    Gets an exercise log by ID, using the workout's discipline to determine 
+    which specific CRUD function to call.
+    
+    Args:
+        db: Database session
+        exercise_id: ID of the exercise log
+        workout_id: ID of the workout to determine discipline
+        
+    Returns:
+        Exercise log of the appropriate discipline or None if not found
+    """
+    # Get the workout to determine its discipline
+    workout = await get_workout(db, workout_id)
+    if not workout:
+        return None
+    
+    # Call the factory method
+    return await ExerciseLogCRUDFactory.get_exercise_log(
+        db, exercise_id, getattr(workout, 'discipline')
+    )
+
+async def get_workout_logs_by_discipline(
+    db: AsyncSession, 
+    workout_id: int
+) -> List[Any]:
+    """
+    Gets all exercise logs for a workout, using the workout's discipline 
+    to determine which specific CRUD function to call.
+    
+    Args:
+        db: Database session
+        workout_id: ID of the workout
+        
+    Returns:
+        List of exercise logs of the appropriate discipline
+    """
+    # Get the workout to determine its discipline
+    workout = await get_workout(db, workout_id)
+    if not workout:
+        return []
+    
+    # Call the factory method
+    return await ExerciseLogCRUDFactory.get_workout_logs(
+        db, workout_id, getattr(workout, 'discipline')
+    )

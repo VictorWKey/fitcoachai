@@ -23,12 +23,19 @@ from .workout import (
     delete_workout,
 )
 
-from .exercise_log import (
-    create_exercise_log,
-    get_exercise_log,
-    get_workout_logs,
-    update_exercise_log,
-    delete_exercise_log,
+from .discipline_exercise_logs import (
+    # Max Strength
+    create_max_strength_log, get_max_strength_log, get_user_max_strength_logs,
+    get_workout_max_strength_logs, update_max_strength_log, delete_max_strength_log,
+    # Hypertrophy
+    create_hypertrophy_log, get_hypertrophy_log, get_user_hypertrophy_logs,
+    get_workout_hypertrophy_logs, update_hypertrophy_log, delete_hypertrophy_log,
+    # Flexibility
+    create_flexibility_log, get_flexibility_log, get_user_flexibility_logs,
+    get_workout_flexibility_logs, update_flexibility_log, delete_flexibility_log,
+    # Cardio
+    create_cardio_log, get_cardio_log, get_user_cardio_logs,
+    get_workout_cardio_logs, update_cardio_log, delete_cardio_log
 )
 
 from .utils import (

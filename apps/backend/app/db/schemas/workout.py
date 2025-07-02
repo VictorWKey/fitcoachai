@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Annotated
 from datetime import datetime
-from db.models.workout import MuscleGroup, Category
+from db.models.workout import MuscleGroup, TrainingDiscipline
 
 class WorkoutBase(BaseModel):
-    muscle_group: MuscleGroup
-    category: Category
+    discipline: TrainingDiscipline
+    muscle_group: MuscleGroup = MuscleGroup.FULL_BODY
     is_finished: bool = False
 
 class WorkoutCreate(WorkoutBase):
@@ -13,8 +13,8 @@ class WorkoutCreate(WorkoutBase):
     start_time: Optional[datetime] = None  
 
 class WorkoutUpdate(BaseModel):
+    discipline: Optional[TrainingDiscipline] = None
     muscle_group: Optional[MuscleGroup] = None
-    category: Optional[Category] = None
     start_time: Optional[datetime] = None
     is_finished: Optional[bool] = None
     
@@ -56,18 +56,11 @@ class WorkoutTypeInference(BaseModel):
             """
         )
     ]
-    category: Annotated[
-        Category,
-        Field(
-            description="""
-            La categoría del entrenamiento basada en las repeticiones, peso y tipo de ejercicios:
-            - strength: Fuerza (típicamente 1-5 repeticiones con peso alto)
-            - hypertrophy: Hipertrofia o crecimiento muscular (típicamente 6-12 repeticiones con peso moderado)
-            - endurance: Resistencia muscular (típicamente más de 12 repeticiones con peso bajo)
-            - balance: Ejercicios de equilibrio
-            - flexibility: Ejercicios de flexibilidad o estiramiento
-            - coordination: Ejercicios que enfatizan la coordinación
-            - power: Ejercicios de potencia (movimientos explosivos)
-            """
-        )
-    ]
+
+# Schema for initializing workouts
+class InitWorkout(BaseModel):
+    """Schema for initializing a new workout with discipline."""
+    discipline: TrainingDiscipline = Field(
+        description="Disciplina de entrenamiento para el workout"
+    )
+
