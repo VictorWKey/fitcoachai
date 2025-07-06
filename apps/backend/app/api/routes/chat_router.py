@@ -13,6 +13,7 @@ from db.session import get_db
 from db.models.user import User
 from db.crud.chat_history import create_chat_history, get_user_chat_history, get_user_chat_history_after
 from db.schemas.chat_history import ChatHistoryCreate
+from typing import cast
 
 chat_router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -44,6 +45,7 @@ async def chat(
     Returns:
         dict: Assistant's response.
     """
+    
     config = {
         "configurable": {
             "thread_id": str(current_user.id),
@@ -53,18 +55,11 @@ async def chat(
     }   
 
     agent = request.app.state.agent
-
-    user_chat_history = await request.app.state.checkpointer.aget_tuple(
-        config=config
-    )
-
-    user_chat_history_exists = True if user_chat_history else False
-
+    
     response = await process_agent(
         chat_input.input, 
         config, 
-        agent,
-        user_chat_history_exists
+        agent
     )
     
     # Extract the assistant's reply (last AI message)
@@ -76,14 +71,14 @@ async def chat(
 
     # Store user and assistant messages in persistent chat history
     await create_chat_history(db, ChatHistoryCreate(
-        user_id=current_user.id,
+        user_id=cast(int, current_user.id),
         message=chat_input.input,
         is_user_message=True
     ))
     assistant_msg_obj = None
     if assistant_reply:
         assistant_msg_obj = await create_chat_history(db, ChatHistoryCreate(
-            user_id=current_user.id,
+            user_id=cast(int, current_user.id),
             message=assistant_reply,
             is_user_message=False
         ))
@@ -108,17 +103,17 @@ async def get_chat_history(
     (incremental fetch). Otherwise, returns the most recent *limit* messages.
     """
     if after_id > 0:
-        history = await get_user_chat_history_after(db, current_user.id, after_id, limit)
+        history = await get_user_chat_history_after(db, cast(int, current_user.id), after_id, limit)
     else:
-        history = await get_user_chat_history(db, current_user.id, limit)
+        history = await get_user_chat_history(db, cast(int, current_user.id), limit)
 
     # Map to simple dict format expected by frontend
     messages = [
         {
             "id": m.id,
-            "role": "user" if m.is_user_message else "assistant",
+            "role": "user" if cast(bool, m.is_user_message) else "assistant",
             "content": m.message,
-            "created_at": m.created_at.isoformat() if m.created_at else None
+            "created_at": m.created_at.isoformat() if cast(bool, m.created_at) else None
         }
         for m in history
     ]

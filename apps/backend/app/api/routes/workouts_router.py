@@ -4,22 +4,28 @@ Routes for managing workouts and exercise logs.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional, Annotated
+from typing import List, Optional, Annotated, Union
 from datetime import datetime
 
 from db.schemas.user import User
 from db.schemas.workout import Workout, WorkoutCreate, WorkoutUpdate
-from db.schemas.exercise_log import ExerciseLog, ExerciseLogCreate, ExerciseLogUpdate
+from db.schemas.strength_log import StrengthLog, StrengthLogCreate, StrengthLogUpdate
+from db.schemas.cardio_log import CardioLog, CardioLogCreate, CardioLogUpdate
+from db.schemas.exercise_log import ExerciseLog, convert_to_exercise_log
 from db.session import get_db
 from api.services import get_current_verified_user
 from db.crud.workout import (
     get_workout, get_user_workouts, get_active_workout, 
-    create_workout, update_workout, delete_workout, finalize_workout
+    create_workout, update_workout, delete_workout
 )
-from db.crud.exercise_log import (
-    get_exercise_log, get_workout_logs, create_exercise_log,
-    update_exercise_log, delete_exercise_log
+from db.crud.strength_log import (
+    get_strength_log, get_workout_logs, get_all_workout_logs, create_strength_log,
+    update_strength_log, delete_strength_log
 )
+from db.crud.cardio_log import (
+    get_cardio_log, create_cardio_log, update_cardio_log, delete_cardio_log
+)
+from db.crud.utils import finalize_workout
 
 workouts_router = APIRouter(prefix="/workouts", tags=["workouts"])
 
@@ -88,7 +94,7 @@ async def get_workout_by_id(
         )
     
     # Verify that the workout belongs to the current user
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to access this workout"
@@ -149,7 +155,7 @@ async def update_workout_by_id(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this workout"
@@ -180,7 +186,7 @@ async def delete_workout_by_id(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this workout"
@@ -220,7 +226,7 @@ async def finish_workout_by_id(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to finish this workout"
@@ -231,6 +237,7 @@ async def finish_workout_by_id(
     
     # Finalize the workout
     finished_workout = await finalize_workout(db, workout_id, llm)
+
     if not finished_workout:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -239,15 +246,14 @@ async def finish_workout_by_id(
     
     return finished_workout
 
-# Exercise log endpoints
-@workouts_router.get("/{workout_id}/exercises", response_model=List[ExerciseLog])
-async def list_workout_exercises(
+@workouts_router.get("/{workout_id}/exercises/all", response_model=List[ExerciseLog])
+async def list_all_workout_exercises(
     workout_id: int,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
-    Get all exercise logs for a specific workout.
+    Get all exercise logs (both strength and cardio) for a specific workout.
     
     Args:
         workout_id: ID of the workout
@@ -255,7 +261,7 @@ async def list_workout_exercises(
         db: Database session
         
     Returns:
-        List[ExerciseLog]: List of exercise logs
+        List[ExerciseLog]: List of all exercise logs (strength and cardio)
     """
     # Verify that the workout exists and belongs to the user
     workout = await get_workout(db, workout_id)
@@ -265,23 +271,27 @@ async def list_workout_exercises(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to access this workout's exercises"
         )
     
-    return await get_workout_logs(db, workout_id)
+    # Get all logs (strength and cardio)
+    all_logs = await get_all_workout_logs(db, workout_id)
+    
+    # Convert to schema objects
+    return [convert_to_exercise_log(log) for log in all_logs]
 
-@workouts_router.post("/{workout_id}/exercises", response_model=ExerciseLog, status_code=status.HTTP_201_CREATED)
+@workouts_router.post("/{workout_id}/exercises/strength", response_model=StrengthLog, status_code=status.HTTP_201_CREATED)
 async def create_exercise_for_workout(
     workout_id: int,
-    exercise_data: ExerciseLogCreate,
+    exercise_data: StrengthLogCreate,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
-    Add a new exercise log to a workout.
+    Add a new strength exercise log to a workout.
     
     Args:
         workout_id: ID of the workout
@@ -300,7 +310,7 @@ async def create_exercise_for_workout(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to add exercises to this workout"
@@ -310,7 +320,46 @@ async def create_exercise_for_workout(
     exercise_data.user_id = current_user.id
     exercise_data.workout_id = workout_id
     
-    return await create_exercise_log(db, exercise_data)
+    return await create_strength_log(db, exercise_data)
+
+@workouts_router.post("/{workout_id}/exercises/cardio", response_model=CardioLog, status_code=status.HTTP_201_CREATED)
+async def create_cardio_exercise_for_workout(
+    workout_id: int,
+    exercise_data: CardioLogCreate,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    db: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    Add a new cardio exercise log to a workout.
+    
+    Args:
+        workout_id: ID of the workout
+        exercise_data: Exercise log data to create
+        current_user: Authenticated and verified user
+        db: Database session
+
+    Returns:
+        ExerciseLog: The created exercise log
+    """
+    # Verify that the workout exists and belongs to the user
+    workout = await get_workout(db, workout_id)
+    if not workout:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workout not found"
+        )
+    
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to add exercises to this workout"
+        )
+    
+    # Ensure the exercise log is assigned to the current user and workout
+    exercise_data.user_id = current_user.id
+    exercise_data.workout_id = workout_id
+    
+    return await create_cardio_log(db, exercise_data)
 
 @workouts_router.get("/{workout_id}/exercises/{exercise_id}", response_model=ExerciseLog)
 async def get_exercise_by_id(
@@ -320,7 +369,7 @@ async def get_exercise_by_id(
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
-    Get a specific exercise log by ID.
+    Get a specific exercise log by ID (strength or cardio).
     
     Args:
         workout_id: ID of the workout
@@ -329,7 +378,7 @@ async def get_exercise_by_id(
         db: Database session
         
     Returns:
-        ExerciseLog: The requested exercise log
+        ExerciseLog: The requested exercise log (strength or cardio)
     """
     # Verify that the workout exists and belongs to the user
     workout = await get_workout(db, workout_id)
@@ -339,49 +388,61 @@ async def get_exercise_by_id(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to access this workout's exercises"
         )
     
-    # Get the exercise log
-    exercise_log = await get_exercise_log(db, exercise_id)
-    if not exercise_log:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Exercise log not found"
-        )
+    # Try to get the exercise log from both strength and cardio tables
+    exercise_log = await get_strength_log(db, exercise_id)
+    if exercise_log:
+        # Verify that the strength log belongs to the specified workout
+        if getattr(exercise_log, 'workout_id') != workout_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise log does not belong to the specified workout"
+            )
+        return convert_to_exercise_log(exercise_log)
     
-    # Verify that the exercise log belongs to the specified workout
-    if exercise_log.workout_id != workout_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Exercise log does not belong to the specified workout"
-        )
+    # If not found in strength logs, try cardio logs
+    from db.crud.cardio_log import get_cardio_log
+    cardio_log = await get_cardio_log(db, exercise_id)
+    if cardio_log:
+        # Verify that the cardio log belongs to the specified workout
+        if getattr(cardio_log, 'workout_id') != workout_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise log does not belong to the specified workout"
+            )
+        return convert_to_exercise_log(cardio_log)
     
-    return exercise_log
+    # If not found in either table
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Exercise log not found"
+    )
 
 @workouts_router.put("/{workout_id}/exercises/{exercise_id}", response_model=ExerciseLog)
 async def update_exercise_by_id(
     workout_id: int,
     exercise_id: int,
-    exercise_data: ExerciseLogUpdate,
+    exercise_data: Union[StrengthLogUpdate, CardioLogUpdate],
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
-    Update a specific exercise log.
+    Update a specific exercise log (strength or cardio).
     
     Args:
         workout_id: ID of the workout
         exercise_id: ID of the exercise log to update
-        exercise_data: Updated exercise log data
+        exercise_data: Updated exercise log data (strength or cardio)
         current_user: Authenticated and verified user
         db: Database session
         
     Returns:
-        ExerciseLog: The updated exercise log
+        ExerciseLog: The updated exercise log (strength or cardio)
     """
     # Verify that the workout exists and belongs to the user
     workout = await get_workout(db, workout_id)
@@ -391,30 +452,57 @@ async def update_exercise_by_id(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update exercises in this workout"
         )
     
-    # Get the exercise log
-    exercise_log = await get_exercise_log(db, exercise_id)
-    if not exercise_log:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Exercise log not found"
-        )
+    # Try to get the exercise log from both strength and cardio tables
+    exercise_log = await get_strength_log(db, exercise_id)
+    if exercise_log:
+        # Verify that the strength log belongs to the specified workout
+        if getattr(exercise_log, 'workout_id') != workout_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise log does not belong to the specified workout"
+            )
+        
+        # Update the strength log
+        if isinstance(exercise_data, StrengthLogUpdate):
+            updated_log = await update_strength_log(db, exercise_id, exercise_data)
+            return convert_to_exercise_log(updated_log)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise data type does not match the exercise log type"
+            )
     
-    # Verify that the exercise log belongs to the specified workout
-    if exercise_log.workout_id != workout_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Exercise log does not belong to the specified workout"
-        )
+    # If not found in strength logs, try cardio logs
+    cardio_log = await get_cardio_log(db, exercise_id)
+    if cardio_log:
+        # Verify that the cardio log belongs to the specified workout
+        if getattr(cardio_log, 'workout_id') != workout_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise log does not belong to the specified workout"
+            )
+        
+        # Update the cardio log
+        if isinstance(exercise_data, CardioLogUpdate):
+            updated_log = await update_cardio_log(db, exercise_id, exercise_data)
+            return convert_to_exercise_log(updated_log)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise data type does not match the exercise log type"
+            )
     
-    # Update the exercise log
-    updated_log = await update_exercise_log(db, exercise_id, exercise_data)
-    return updated_log
+    # If not found in either table
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Exercise log not found"
+    )
 
 @workouts_router.delete("/{workout_id}/exercises/{exercise_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_exercise_by_id(
@@ -424,7 +512,7 @@ async def delete_exercise_by_id(
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
     """
-    Delete a specific exercise log.
+    Delete a specific exercise log (strength or cardio).
     
     Args:
         workout_id: ID of the workout
@@ -440,31 +528,52 @@ async def delete_exercise_by_id(
             detail="Workout not found"
         )
     
-    if workout.user_id != current_user.id:
+    if getattr(workout, 'user_id') != getattr(current_user, 'id'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete exercises from this workout"
         )
     
-    # Get the exercise log
-    exercise_log = await get_exercise_log(db, exercise_id)
-    if not exercise_log:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Exercise log not found"
-        )
+    # Try to get the exercise log from both strength and cardio tables
+    exercise_log = await get_strength_log(db, exercise_id)
+    if exercise_log:
+        # Verify that the strength log belongs to the specified workout
+        if getattr(exercise_log, 'workout_id') != workout_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise log does not belong to the specified workout"
+            )
+        
+        # Delete the strength log
+        success = await delete_strength_log(db, exercise_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete exercise log"
+            )
+        return
     
-    # Verify that the exercise log belongs to the specified workout
-    if exercise_log.workout_id != workout_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Exercise log does not belong to the specified workout"
-        )
+    # If not found in strength logs, try cardio logs
+    cardio_log = await get_cardio_log(db, exercise_id)
+    if cardio_log:
+        # Verify that the cardio log belongs to the specified workout
+        if getattr(cardio_log, 'workout_id') != workout_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Exercise log does not belong to the specified workout"
+            )
+        
+        # Delete the cardio log
+        success = await delete_cardio_log(db, exercise_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete exercise log"
+            )
+        return
     
-    # Delete the exercise log
-    success = await delete_exercise_log(db, exercise_id)
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete exercise log"
-        )
+    # If not found in either table
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Exercise log not found"
+    )

@@ -1,8 +1,39 @@
+"""
+Authentication and authorization routes for FitCoach AI.
+
+This module provides all authentication-related endpoints including:
+- User registration with email verification
+- User login and logout
+- Token refresh and revocation
+- Email verification and resend
+- Password reset functionality
+
+The module follows the layered architecture pattern:
+- Routes handle HTTP requests and responses
+- Services contain business logic
+- CRUD operations interact with the database
+
+Security features:
+- JWT-based authentication with access and refresh tokens
+- Email verification for new accounts
+- Password reset with secure tokens
+- Token blacklisting for logout
+- Rate limiting and account lockout protection
+- CSRF protection middleware
+
+Dependencies:
+- FastAPI for HTTP handling
+- SQLAlchemy for database operations
+- JWT for token management
+- Email service for notifications
+- Background tasks for async email sending
+"""
+
 # routes/auth.py
 from fastapi import APIRouter, Depends, HTTPException, status, Response, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import Dict, Any
+from typing import Dict, Any, Optional, cast
 from pydantic import EmailStr
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
@@ -168,6 +199,12 @@ async def refresh_token(
         
         # Verificar que el refresh token no esté en la blacklist
         jti = payload.get("jti")
+        
+        if jti is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                detail="Invalid refresh token"
+            )
         await CoreAuthService.verify_token_not_blacklisted(db, jti)
         
         user = await crud.user.get_user(db, int(user_id))
@@ -233,7 +270,7 @@ async def verify_email(
     """
     stmt = select(User).where(User.verification_token == token)
     result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
+    user: Optional[User] = result.scalar_one_or_none()
     
     if not user:
         raise HTTPException(
@@ -241,15 +278,15 @@ async def verify_email(
             detail="Token de verificación inválido"
         )
     
-    if user.verification_token_expires < datetime.now(timezone.utc):
+    if cast(datetime, user.verification_token_expires) < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Token de verificación expirado"
         )
         
-    user.is_verified = True
-    user.verification_token = None
-    user.verification_token_expires = None
+    setattr(user, 'is_verified', True)
+    setattr(user, 'verification_token', None)
+    setattr(user, 'verification_token_expires', None)
     await db.commit()
     
     return {"message": "Email verificado correctamente"}
@@ -279,13 +316,13 @@ async def resend_verification(
         HTTPException: If there's an error processing the request.
     """
     try:
-        user = await crud.user.get_user_by_email(db, email)
+        user: Optional[User] = await crud.user.get_user_by_email(db, email)
         if not user:
             # For security reasons, we don't reveal if the email exists or not
             logger.info(f"Resend verification requested for non-existent email: {email}")
             return {"message": "Si tu cuenta existe, recibirás un email de verificación"}
             
-        if user.is_verified:
+        if cast(bool, user.is_verified):
             logger.info(f"Resend verification requested for already verified email: {email}")
             return {
                 "message": "Esta cuenta ya está verificada. Puedes iniciar sesión con tus credenciales."
@@ -296,9 +333,9 @@ async def resend_verification(
         verification_expires = datetime.now(timezone.utc) + timedelta(hours=24)
         
         # Update user with new token
-        user.verification_token = verification_token
-        user.verification_token_expires = verification_expires
-        user.updated_at = datetime.now(timezone.utc)
+        setattr(user, 'verification_token', verification_token)
+        setattr(user, 'verification_token_expires', verification_expires)
+        setattr(user, 'updated_at', datetime.now(timezone.utc))
         await db.commit()
         
         # Send verification email
@@ -338,8 +375,8 @@ async def forgot_password(
     reset_token = CoreAuthService.generate_verification_token()
     reset_expires = datetime.now(timezone.utc) + timedelta(hours=1)  # Expira en 1 hora
     
-    user.reset_password_token = reset_token
-    user.reset_password_expires = reset_expires
+    setattr(user, 'reset_password_token', reset_token)
+    setattr(user, 'reset_password_expires', reset_expires)
     await db.commit()
     
     background_tasks.add_task(send_password_reset_email, email, reset_token)
@@ -371,7 +408,7 @@ async def verify_reset_token(
             detail="Token de restablecimiento inválido"
         )
     
-    if user.reset_password_expires < datetime.now(timezone.utc):
+    if cast(datetime, user.reset_password_expires) < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Token de restablecimiento expirado"
@@ -419,18 +456,18 @@ async def reset_password(
             detail="Token de restablecimiento inválido"
         )
     
-    if user.reset_password_expires < datetime.now(timezone.utc):
+    if cast(datetime, user.reset_password_expires) < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Token de restablecimiento expirado"
         )
     
     hashed_password = crud.user.get_password_hash(reset_data.new_password)
-    user.hashed_password = hashed_password
-    user.reset_password_token = None
-    user.reset_password_expires = None
+    setattr(user, 'hashed_password', hashed_password)
+    setattr(user, 'reset_password_token', None)
+    setattr(user, 'reset_password_expires', None)
     
-    await CoreAuthService.revoke_all_user_tokens(db, user.id)
+    await CoreAuthService.revoke_all_user_tokens(db, cast(int, user.id))
     
     await db.commit()
     

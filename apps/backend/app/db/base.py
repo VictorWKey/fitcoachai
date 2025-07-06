@@ -3,9 +3,8 @@ Base configuration for the data access layer.
 Defines the connection to the database and the base class for ORM models.
 """
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 from config.db_settings import db_settings
 
@@ -21,7 +20,7 @@ engine = create_async_engine(
 Base = declarative_base()
 
 # Session factory for interacting with the database
-SessionLocal = sessionmaker(
+SessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,

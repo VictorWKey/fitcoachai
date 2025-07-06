@@ -1,3 +1,10 @@
+"""
+Security configuration for FitCoach AI.
+
+Manages JWT settings, account security, rate limiting,
+CSRF protection, and Redis configuration.
+"""
+
 import os
 from typing import Optional
 from pydantic import BaseModel
@@ -13,7 +20,7 @@ class SecuritySettings:
     """Application security configuration."""
     
     # JWT configuration
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "very_secret_key_for_csrf")
     if not SECRET_KEY:
         raise RuntimeError("No SECRET_KEY set in environment variables")
         

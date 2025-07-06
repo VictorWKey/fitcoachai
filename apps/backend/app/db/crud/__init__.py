@@ -1,7 +1,3 @@
-"""
-CRUD (Create, Read, Update, Delete) module for database operations.
-Provides access to CRUD functions for all application models.
-"""
 
 from .user import (
     create_user,
@@ -23,12 +19,20 @@ from .workout import (
     delete_workout,
 )
 
-from .exercise_log import (
-    create_exercise_log,
-    get_exercise_log,
+from .strength_log import (
+    create_strength_log,
+    get_strength_log,
     get_workout_logs,
-    update_exercise_log,
-    delete_exercise_log,
+    get_all_workout_logs,
+    update_strength_log,
+    delete_strength_log,
+)
+
+from .cardio_log import (
+    create_cardio_log,
+    get_cardio_log,
+    update_cardio_log,
+    delete_cardio_log,
 )
 
 from .utils import (

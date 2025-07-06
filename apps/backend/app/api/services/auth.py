@@ -1,3 +1,10 @@
+"""
+Authentication service for FitCoach AI API.
+
+Provides user authentication, JWT token validation, and authorization services.
+Acts as a bridge between API routes and core authentication services.
+"""
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 import secrets
@@ -24,6 +31,7 @@ from exceptions.auth import (
     NotVerifiedException
 )
 from config.security_settings import security_settings
+from typing import cast
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
@@ -55,7 +63,7 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> T
         Tuple (user, is_valid).
     """
     try:
-        return await CoreUserService.authenticate_user(db, username, password)
+        return await CoreUserService.authenticate_user(db, username, password)  # type: ignore
     except (InvalidCredentialsException, HTTPException) as e:
         logger.warning(f"Failed login attempt for user: {username}")
         if isinstance(e, InvalidCredentialsException):
@@ -87,14 +95,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     
     try:
         payload = CoreAuthService.decode_token(token)
-        user_id: str = payload.get("sub")
-        jti: str = payload.get("jti")
-        
-        if user_id is None or jti is None:
-            raise credentials_exception
+        user_id: str = cast(str, payload.get("sub"))
+        jti: str = cast(str, payload.get("jti"))
         
         await CoreAuthService.verify_token_not_blacklisted(db, jti)
-            
         token_data = TokenData(sub=int(user_id), jti=jti)
         
     except (InvalidTokenException, JWTError) as e:
@@ -106,7 +110,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         logger.warning(f"User not found: ID {token_data.sub}")
         raise credentials_exception
         
-    if not user.is_active:
+    if not getattr(user, 'is_active'):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
         
     return user
@@ -124,7 +128,7 @@ async def get_current_verified_user(current_user: User = Depends(get_current_use
     Raises:
         HTTPException: If the user's email is not verified.
     """
-    if not current_user.is_verified:
+    if not getattr(current_user, 'is_verified'):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email not verified. Please verify your email."
@@ -168,7 +172,7 @@ async def check_user_exists(db: AsyncSession, email: str, username: str) -> Dict
         result['user'] = db_user
         
         # If email is already registered and verified, raise an error
-        if db_user.is_verified:
+        if getattr(db_user, 'is_verified'):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
                 detail="Email already registered"
@@ -179,10 +183,10 @@ async def check_user_exists(db: AsyncSession, email: str, username: str) -> Dict
     if db_username_user:
         result['username_exists'] = True
         result['username_user'] = db_username_user
-        result['is_username_verified'] = db_username_user.is_verified
+        result['is_username_verified'] = getattr(db_username_user, 'is_verified')
         
         # Only raise an error if the username is already verified
-        if db_username_user.is_verified:
+        if getattr(db_username_user, 'is_verified'):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Username already taken"

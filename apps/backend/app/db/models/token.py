@@ -1,6 +1,5 @@
 """
 ORM model for the JWT token blacklist.
-Defines the structure for storing revoked tokens.
 """
 
 from sqlalchemy import Column, Integer, String, DateTime

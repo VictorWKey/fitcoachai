@@ -1,6 +1,5 @@
 """
 ORM model for the exercise logs table.
-Defines the structure and relationships of exercises performed in a workout.
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKey
@@ -22,9 +21,17 @@ class WeightUnit(enum.Enum):
     KG = "kg"
     LB = "lb"
 
-class ExerciseLog(Base):
+class ExerciseType(enum.Enum):
     """
-    Model for recording exercises performed during a workout.
+    Enumeration of exercise categories.
+    """
+    STRENGTH = "strength"
+    HIPERTROPHY = "hypertrophy"
+    TECHNIQUE = "technique"
+
+class StrengthLog(Base):
+    """
+    Model for recording exercises performed during a workout about strength or hypertrophy.
     
     Attributes:
         id: Unique identifier for the exercise log
@@ -50,11 +57,16 @@ class ExerciseLog(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     workout_id = Column(Integer, ForeignKey("workouts.id"), nullable=False)
     exercise_name = Column(String, nullable=True)
+    exercise_type = Column(Enum(ExerciseType), nullable=True)
     set_number = Column(Integer, nullable=True)
     reps = Column(Integer, nullable=True)
     weight = Column(Float, nullable=True)
     weight_unit = Column(Enum(WeightUnit), nullable=True)
+    one_rm_percentage = Column(Float, nullable=True)  # 30-120%
     rir = Column(Integer, nullable=True)
+    rpe = Column(Float, nullable=True)  # 1-10 scale
+    tempo = Column(String, nullable=True)  # Format: "E-B-C-T" (eccentric-bottom-concentric-top)
+    rest_time_seconds = Column(Integer, nullable=True)
     notes = Column(String, nullable=True)
     exercise_date = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -100,7 +100,7 @@ async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[U
     result = await db.execute(
         select(User).offset(skip).limit(limit)
     )
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 async def create_user(
     db: AsyncSession, 

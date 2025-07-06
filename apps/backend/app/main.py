@@ -8,7 +8,8 @@ from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_openai import ChatOpenAI
 from agent.agent import get_agent
-from agent.tools.log_exercise import log_exercise
+from agent.tools.log_strength_exercise import log_strength_exercise
+from agent.tools.log_cardio_exercise import log_cardio_exercise
 from agent.tools.finish_workout import finish_workout
 from db import init_db
 from api.routes import api_router
@@ -16,7 +17,6 @@ from middleware import RateLimitMiddleware, SecurityHeadersMiddleware, setup_csr
 from config.app_settings import settings
 from config.db_settings import db_settings
 from utils.model_utils import wait_for_server_and_load_model
-from jobs.auto_finish_workouts import setup_auto_finish_job
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
@@ -42,33 +42,31 @@ async def lifespan(app: FastAPI):
         max_lifetime=db_settings.POOL_RECYCLE,
         kwargs=db_settings.CONNECTION_KWARGS
     ) as pool:
-        # Configure langgraph checkpointer
-        checkpointer = AsyncPostgresSaver(pool)
-        await checkpointer.setup()
 
-        llm = ChatOpenAI(
-            model=settings.MODEL_NAME,
-            temperature=0,
-            max_tokens=1000,
-        ).bind_tools([log_exercise, finish_workout])
+        async with pool.connection() as conn:
+            checkpointer = AsyncPostgresSaver(conn)  # Aquí pasas la conexión, no el pool
+            await checkpointer.setup()
 
-        agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_exercise, finish_workout])
-        
-        app.state.pool = pool
-        app.state.llm = llm
-        app.state.checkpointer = checkpointer
-        app.state.agent = agent
-        
-        await setup_auto_finish_job(
-            app,
-            enable_job=settings.ENABLE_AUTO_FINISH_JOB,
-            interval_minutes=settings.AUTO_FINISH_JOB_INTERVAL
-        )
+            llm = ChatOpenAI(
+                model=settings.MODEL_NAME,
+                temperature=0,
+                max_completion_tokens=10000
+            ).bind_tools([log_strength_exercise, log_cardio_exercise, finish_workout])
 
-        yield
-        
-        if hasattr(app.state, "scheduler"):
-            app.state.scheduler.shutdown()
+            agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_strength_exercise, log_cardio_exercise, finish_workout])
+            
+            app.state.pool = pool
+            app.state.llm = llm
+            app.state.checkpointer = checkpointer
+            app.state.agent = agent
+
+            yield
+            
+            if hasattr(app.state, "scheduler"):
+                app.state.scheduler.shutdown()
+
+
+
 
 app = FastAPI(
     lifespan=lifespan,

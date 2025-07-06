@@ -1,3 +1,11 @@
+"""
+Chat service for FitCoach AI API.
+
+Provides AI agent interaction services including user input processing,
+context retrieval, and response generation. Interfaces between API routes
+and the LangChain agent.
+"""
+
 from langchain_core.messages import SystemMessage
 from agent.prompts import SYSTEM_MESSAGE, USER_MESSAGE
 from agent.context import get_history_context
@@ -5,8 +13,7 @@ from agent.context import get_history_context
 async def process_agent(
     user_input: str, 
     config: dict, 
-    agent, 
-    user_chat_history_exists: bool
+    agent
 ) -> dict:
     """
     Processes the user's input and gets a response from the agent.
@@ -29,14 +36,9 @@ async def process_agent(
         input=user_input, 
         history=user_history_context
     )
-    
-    if user_chat_history_exists:
-        messages = [user_messages[0]]
-    else:
-        messages = [SYSTEM_MESSAGE, user_messages[0]]
 
     response = await agent.ainvoke(
-        {"messages": messages},
+        {"messages": user_messages},
         config=config
     )
 

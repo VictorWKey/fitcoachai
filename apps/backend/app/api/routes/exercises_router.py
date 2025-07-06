@@ -9,8 +9,11 @@ from typing import List, Dict, Any, Annotated, Optional
 from datetime import datetime, timedelta
 
 from db.schemas.user import User
-from db.schemas.exercise_log import ExerciseLog
-from db.models.exercise_log import ExerciseLog as ExerciseLogModel
+from db.schemas.strength_log import StrengthLog
+from db.schemas.cardio_log import CardioLog
+from db.schemas.exercise_log import ExerciseLog, convert_to_exercise_log
+from db.models.strength_log import StrengthLog as StrengthLogModel
+from db.models.cardio_log import CardioLog as CardioLogModel
 from db.models.workout import Workout as WorkoutModel
 from db.session import get_db
 from api.services import get_current_verified_user
@@ -32,16 +35,33 @@ async def get_recent_exercises(
         limit: Maximum number of exercises to return
         
     Returns:
-        List[ExerciseLog]: List of recent exercise logs
+        List[ExerciseLog]: List of recent exercise logs (both strength and cardio)
     """
-    result = await db.execute(
-        select(ExerciseLogModel)
-        .where(ExerciseLogModel.user_id == current_user.id)
-        .order_by(desc(ExerciseLogModel.exercise_date))
+    # Get recent strength exercises
+    strength_result = await db.execute(
+        select(StrengthLogModel)
+        .where(StrengthLogModel.user_id == current_user.id)
+        .order_by(desc(StrengthLogModel.exercise_date))
         .limit(limit)
     )
+    strength_logs = list(strength_result.scalars().all())
     
-    return result.scalars().all()
+    # Get recent cardio exercises  
+    cardio_result = await db.execute(
+        select(CardioLogModel)
+        .where(CardioLogModel.user_id == current_user.id)
+        .order_by(desc(CardioLogModel.exercise_date))
+        .limit(limit)
+    )
+    cardio_logs = list(cardio_result.scalars().all())
+    
+    # Combine and convert to schema objects
+    all_logs = strength_logs + cardio_logs
+    exercise_logs = [convert_to_exercise_log(log) for log in all_logs]
+    
+    # Sort by exercise_date (most recent first) and limit
+    exercise_logs.sort(key=lambda x: x.exercise_date, reverse=True)
+    return exercise_logs[:limit]
 
 @exercises_router.get("/popular", response_model=List[Dict[str, Any]])
 async def get_popular_exercises(
@@ -60,21 +80,46 @@ async def get_popular_exercises(
     Returns:
         List[Dict]: List of exercise names and their counts
     """
-    result = await db.execute(
+    # Get strength exercise counts
+    strength_result = await db.execute(
         select(
-            ExerciseLogModel.exercise_name,
-            func.count(ExerciseLogModel.id).label("count")
+            StrengthLogModel.exercise_name,
+            func.count(StrengthLogModel.id).label("count")
         )
         .where(
-            ExerciseLogModel.user_id == current_user.id,
-            ExerciseLogModel.exercise_name != None
+            StrengthLogModel.user_id == current_user.id,
+            StrengthLogModel.exercise_name != None
         )
-        .group_by(ExerciseLogModel.exercise_name)
-        .order_by(desc("count"))
-        .limit(limit)
+        .group_by(StrengthLogModel.exercise_name)
     )
     
-    return [{"name": name, "count": count} for name, count in result.all()]
+    # Get cardio exercise counts
+    cardio_result = await db.execute(
+        select(
+            CardioLogModel.exercise_name,
+            func.count(CardioLogModel.id).label("count")
+        )
+        .where(
+            CardioLogModel.user_id == current_user.id,
+            CardioLogModel.exercise_name != None
+        )
+        .group_by(CardioLogModel.exercise_name)
+    )
+    
+    # Combine results and aggregate by exercise name
+    exercise_counts = {}
+    
+    for name, count in strength_result.all():
+        if name:
+            exercise_counts[name] = exercise_counts.get(name, 0) + count
+    
+    for name, count in cardio_result.all():
+        if name:
+            exercise_counts[name] = exercise_counts.get(name, 0) + count
+    
+    # Sort by count and limit
+    sorted_exercises = sorted(exercise_counts.items(), key=lambda x: x[1], reverse=True)
+    return [{"name": name, "count": count} for name, count in sorted_exercises[:limit]]
 
 @exercises_router.get("/stats", response_model=Dict[str, Any])
 async def get_exercise_stats(
@@ -97,15 +142,27 @@ async def get_exercise_stats(
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     
-    # Count total exercises
-    exercise_count_result = await db.execute(
-        select(func.count(ExerciseLogModel.id))
+    # Count total strength exercises
+    strength_count_result = await db.execute(
+        select(func.count(StrengthLogModel.id))
         .where(
-            ExerciseLogModel.user_id == current_user.id,
-            ExerciseLogModel.exercise_date >= start_date
+            StrengthLogModel.user_id == current_user.id,
+            StrengthLogModel.exercise_date >= start_date
         )
     )
-    total_exercises = exercise_count_result.scalar_one()
+    total_strength_exercises = strength_count_result.scalar_one()
+    
+    # Count total cardio exercises
+    cardio_count_result = await db.execute(
+        select(func.count(CardioLogModel.id))
+        .where(
+            CardioLogModel.user_id == current_user.id,
+            CardioLogModel.exercise_date >= start_date
+        )
+    )
+    total_cardio_exercises = cardio_count_result.scalar_one()
+    
+    total_exercises = total_strength_exercises + total_cardio_exercises
     
     # Count total workouts
     workout_count_result = await db.execute(
@@ -143,6 +200,8 @@ async def get_exercise_stats(
     
     return {
         "total_exercises": total_exercises,
+        "total_strength_exercises": total_strength_exercises,
+        "total_cardio_exercises": total_cardio_exercises,
         "total_workouts": total_workouts,
         "avg_exercises_per_workout": round(avg_exercises, 2),
         "top_muscle_groups": muscle_groups,
@@ -168,17 +227,37 @@ async def search_exercises(
     Returns:
         List[ExerciseLog]: List of matching exercise logs
     """
-    result = await db.execute(
-        select(ExerciseLogModel)
+    # Search strength exercises
+    strength_result = await db.execute(
+        select(StrengthLogModel)
         .where(
-            ExerciseLogModel.user_id == current_user.id,
-            ExerciseLogModel.exercise_name.ilike(f"%{query}%")
+            StrengthLogModel.user_id == current_user.id,
+            StrengthLogModel.exercise_name.ilike(f"%{query}%")
         )
-        .order_by(desc(ExerciseLogModel.exercise_date))
+        .order_by(desc(StrengthLogModel.exercise_date))
         .limit(limit)
     )
+    strength_logs = list(strength_result.scalars().all())
     
-    return result.scalars().all()
+    # Search cardio exercises
+    cardio_result = await db.execute(
+        select(CardioLogModel)
+        .where(
+            CardioLogModel.user_id == current_user.id,
+            CardioLogModel.exercise_name.ilike(f"%{query}%")
+        )
+        .order_by(desc(CardioLogModel.exercise_date))
+        .limit(limit)
+    )
+    cardio_logs = list(cardio_result.scalars().all())
+    
+    # Combine and convert to schema objects
+    all_logs = strength_logs + cardio_logs
+    exercise_logs = [convert_to_exercise_log(log) for log in all_logs]
+    
+    # Sort by exercise_date (most recent first) and limit
+    exercise_logs.sort(key=lambda x: x.exercise_date, reverse=True)
+    return exercise_logs[:limit]
 
 @exercises_router.get("/progress/{exercise_name}", response_model=List[Dict[str, Any]])
 async def get_exercise_progress(
@@ -188,7 +267,7 @@ async def get_exercise_progress(
     days: int = Query(90, ge=1, le=365)
 ):
     """
-    Get progress data for a specific exercise over time.
+    Get progress data for a specific exercise over time (both strength and cardio).
     
     Args:
         exercise_name: Name of the exercise to track
@@ -203,29 +282,64 @@ async def get_exercise_progress(
     end_date = datetime.now()
     start_date = end_date - timedelta(days=days)
     
-    result = await db.execute(
-        select(ExerciseLogModel)
+    # Get strength logs
+    strength_result = await db.execute(
+        select(StrengthLogModel)
         .where(
-            ExerciseLogModel.user_id == current_user.id,
-            ExerciseLogModel.exercise_name.ilike(f"%{exercise_name}%"),
-            ExerciseLogModel.exercise_date >= start_date
+            StrengthLogModel.user_id == current_user.id,
+            StrengthLogModel.exercise_name.ilike(f"%{exercise_name}%"),
+            StrengthLogModel.exercise_date >= start_date
         )
-        .order_by(ExerciseLogModel.exercise_date)
+        .order_by(StrengthLogModel.exercise_date)
     )
+    strength_logs = strength_result.scalars().all()
     
-    logs = result.scalars().all()
+    # Get cardio logs
+    cardio_result = await db.execute(
+        select(CardioLogModel)
+        .where(
+            CardioLogModel.user_id == current_user.id,
+            CardioLogModel.exercise_name.ilike(f"%{exercise_name}%"),
+            CardioLogModel.exercise_date >= start_date
+        )
+        .order_by(CardioLogModel.exercise_date)
+    )
+    cardio_logs = cardio_result.scalars().all()
     
     # Format the response
     progress_data = []
-    for log in logs:
+    
+    # Add strength exercise data
+    for log in strength_logs:
         progress_data.append({
             "date": log.exercise_date.isoformat(),
+            "type": "strength",
+            "exercise_name": log.exercise_name,
             "reps": log.reps,
             "weight": log.weight,
-            "weight_unit": log.weight_unit.value if log.weight_unit else None,
+            "weight_unit": log.weight_unit.value if log.weight_unit is not None else None,
             "rir": log.rir,
+            "rpe": log.rpe,
             "set_number": log.set_number
         })
+    
+    # Add cardio exercise data
+    for log in cardio_logs:
+        progress_data.append({
+            "date": log.exercise_date.isoformat(),
+            "type": "cardio",
+            "exercise_name": log.exercise_name,
+            "cardio_type": log.cardio_type.value if log.cardio_type is not None else None,
+            "duration_minutes": log.total_duration_seconds // 60 if log.total_duration_seconds is not None else None,
+            "distance_km": log.distance_km,
+            "average_speed_kmh": log.average_speed_kmh,
+            "avg_heart_rate": log.avg_heart_rate,
+            "calories_burned": log.calories_burned,
+            "avg_rpe": log.avg_rpe
+        })
+    
+    # Sort by date
+    progress_data.sort(key=lambda x: x["date"])
     
     return progress_data
 
@@ -245,26 +359,58 @@ async def get_exercise_catalog(
     Returns:
         Dict[str, List[str]]: Dictionary of muscle groups and their exercises
     """
-    # Get all unique exercise names for this user
-    result = await db.execute(
+    # Get all unique strength exercise names for this user
+    strength_result = await db.execute(
         select(
-            ExerciseLogModel.exercise_name,
+            StrengthLogModel.exercise_name,
             WorkoutModel.muscle_group
         )
         .join(
             WorkoutModel,
-            ExerciseLogModel.workout_id == WorkoutModel.id
+            StrengthLogModel.workout_id == WorkoutModel.id
         )
         .where(
-            ExerciseLogModel.user_id == current_user.id,
-            ExerciseLogModel.exercise_name != None
+            StrengthLogModel.user_id == current_user.id,
+            StrengthLogModel.exercise_name != None
         )
-        .group_by(ExerciseLogModel.exercise_name, WorkoutModel.muscle_group)
+        .group_by(StrengthLogModel.exercise_name, WorkoutModel.muscle_group)
+    )
+    
+    # Get all unique cardio exercise names for this user
+    cardio_result = await db.execute(
+        select(
+            CardioLogModel.exercise_name,
+            WorkoutModel.muscle_group
+        )
+        .join(
+            WorkoutModel,
+            CardioLogModel.workout_id == WorkoutModel.id
+        )
+        .where(
+            CardioLogModel.user_id == current_user.id,
+            CardioLogModel.exercise_name != None
+        )
+        .group_by(CardioLogModel.exercise_name, WorkoutModel.muscle_group)
     )
     
     # Organize by muscle group
     catalog = {}
-    for exercise_name, muscle_group in result.all():
+    
+    # Add strength exercises
+    for exercise_name, muscle_group in strength_result.all():
+        if not exercise_name:
+            continue
+            
+        group_key = str(muscle_group.value) if muscle_group else "unknown"
+        
+        if group_key not in catalog:
+            catalog[group_key] = []
+            
+        if exercise_name not in catalog[group_key]:
+            catalog[group_key].append(exercise_name)
+    
+    # Add cardio exercises
+    for exercise_name, muscle_group in cardio_result.all():
         if not exercise_name:
             continue
             

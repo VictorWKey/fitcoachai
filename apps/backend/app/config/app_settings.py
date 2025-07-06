@@ -1,3 +1,10 @@
+"""
+General application settings for FitCoach AI.
+
+Contains application metadata, CORS configuration, LLM model settings,
+and optional integrations like LangSmith and OpenAI.
+"""
+
 import os
 from typing import List
 
@@ -14,8 +21,8 @@ class AppSettings:
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost,http://localhost:3000").split(",")
     
     # LLM model configuration
-    OLLAMA_API_BASE_URL: str = os.getenv("OLLAMA_API_BASE_URL")
-    MODEL_NAME: str = os.getenv("MODEL_NAME")
+    OLLAMA_API_BASE_URL: str = os.getenv("OLLAMA_API_BASE_URL", "http://localhost:11434")
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "llama3.1:8b")
     
     # Other settings
     WEBSITE_URL: str = os.getenv("WEBSITE_URL", "http://localhost:8000")

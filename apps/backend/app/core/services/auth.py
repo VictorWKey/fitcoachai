@@ -1,3 +1,10 @@
+"""
+Core authentication service for FitCoach AI.
+
+Handles JWT token creation, validation, and management including
+access tokens, refresh tokens, and token blacklisting.
+"""
+
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple, Dict, Any
 import secrets
@@ -16,6 +23,7 @@ from exceptions.auth import (
     TokenExpiredException
 )
 from config.security_settings import security_settings
+from typing import cast
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +144,7 @@ class CoreAuthService:
                 algorithms=[security_settings.ALGORITHM]
             )
             jti = payload.get("jti")
-            exp = datetime.fromtimestamp(payload.get("exp"), tz=timezone.utc)
+            exp = datetime.fromtimestamp(cast(float, payload.get("exp")), tz=timezone.utc)
             
             if not jti:
                 return False

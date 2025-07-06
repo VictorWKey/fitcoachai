@@ -1,3 +1,10 @@
+"""
+Core user service for FitCoach AI.
+
+Manages user creation, authentication, and profile operations
+including account lockout protection and password verification.
+"""
+
 from datetime import datetime, timedelta, timezone
 from typing import Tuple, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -103,14 +110,14 @@ class CoreUserService:
         user = result.scalars().first()
 
         
-        if not user or not user.is_active:
+        if not user or not getattr(user, 'is_active'):
             raise InvalidCredentialsException("Incorrect username or password")
 
         logger.info(f"User authenticated: {user.username}")
         
         # Check if the account is locked
-        if user.failed_login_attempts >= security_settings.MAX_LOGIN_ATTEMPTS:
-            if user.account_locked_until and user.account_locked_until > datetime.now(timezone.utc):
+        if getattr(user, 'failed_login_attempts') >= security_settings.MAX_LOGIN_ATTEMPTS:
+            if getattr(user, 'account_locked_until') and getattr(user, 'account_locked_until') > datetime.now(timezone.utc):
                 lockout_minutes = (user.account_locked_until - datetime.now(timezone.utc)).seconds // 60
                 logger.warning(f"Login attempt on locked account: {user.username}")
                 raise AccountLockedException(
@@ -118,21 +125,21 @@ class CoreUserService:
                 )
             else:
                 # Reset failed attempts if the lockout period has passed
-                user.failed_login_attempts = 0
-                user.account_locked_until = None
+                setattr(user, 'failed_login_attempts', 0)
+                setattr(user, 'account_locked_until', None)
                 await db.commit()
         
         # Verify password
-        if not verify_password(password, user.hashed_password):
+        if not verify_password(password, getattr(user, 'hashed_password')):
             # Increment failed attempts counter
-            user.failed_login_attempts += 1
-            user.last_failed_login = datetime.now(timezone.utc)
+            setattr(user, 'failed_login_attempts', getattr(user, 'failed_login_attempts') + 1)
+            setattr(user, 'last_failed_login', datetime.now(timezone.utc))
             
             # Lock the account if the limit is exceeded
-            if user.failed_login_attempts >= security_settings.MAX_LOGIN_ATTEMPTS:
-                user.account_locked_until = datetime.now(timezone.utc) + timedelta(
+            if getattr(user, 'failed_login_attempts') >= security_settings.MAX_LOGIN_ATTEMPTS:
+                setattr(user, 'account_locked_until', datetime.now(timezone.utc) + timedelta(
                     minutes=security_settings.ACCOUNT_LOCKOUT_MINUTES
-                )
+                ))
                 logger.warning(f"Account locked due to multiple failed attempts: {user.username}")
                 
             await db.commit()
@@ -141,10 +148,10 @@ class CoreUserService:
 
             
         # Reset failed attempts on successful login
-        if user.failed_login_attempts > 0:
-            user.failed_login_attempts = 0
-            user.last_failed_login = None
-            user.account_locked_until = None
+        if getattr(user, 'failed_login_attempts') > 0:
+            setattr(user, 'failed_login_attempts', 0)
+            setattr(user, 'last_failed_login', None)
+            setattr(user, 'account_locked_until', None)
             await db.commit()
 
 

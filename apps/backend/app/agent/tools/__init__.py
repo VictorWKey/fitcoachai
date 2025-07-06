@@ -1,2 +1,3 @@
-from .log_exercise import log_exercise
+from .log_strength_exercise import log_strength_exercise
+from .log_cardio_exercise import log_cardio_exercise
 from .finish_workout import finish_workout

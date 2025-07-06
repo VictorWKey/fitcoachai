@@ -28,8 +28,6 @@ async def db_session():
         except Exception:
             await db.rollback()
             raise
-        finally:
-            await db.close()
 
 async def get_db():
     """
@@ -46,7 +44,4 @@ async def get_db():
         AsyncSession: An asynchronous SQLAlchemy session
     """
     async with SessionLocal() as db:
-        try:
-            yield db
-        finally:
-            await db.close()
+        yield db

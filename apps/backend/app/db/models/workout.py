@@ -1,6 +1,5 @@
 """
 ORM model for the workouts table.
-Defines the structure and relationships of workouts in the database.
 """
 
 from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey, Boolean
@@ -32,8 +31,8 @@ class MuscleGroup(enum.Enum):
     CHEST = "chest"
     BACK = "back"
     LEGS_IN_GENERAL = "legs_in_general"
-    LEGS_CUADRICEPS_ENPHASIS = "legs_cuadriceps_enphasis"
-    LEGS_HAMSTRINGS_ENPHASIS = "legs_hamstrings_enphasis"
+    LEGS_CUADRICEPS_ENPHASIS = "legs_cuadriceps_emphasis"
+    LEGS_HAMSTRINGS_ENPHASIS = "legs_hamstrings_emphasis"
     SHOULDERS = "shoulders"
     ARMS = "arms"
     ONLY_TRICEPS = "only_triceps"
@@ -41,6 +40,8 @@ class MuscleGroup(enum.Enum):
     ABS = "abs"
     CORE = "core"
     FULL_BODY = "full_body"
+    UPPER_BODY = "upper_body"
+    LOWER_BODY = "lower_body"
     CARDIO = "cardio"
     
 class Category(enum.Enum):
@@ -49,20 +50,10 @@ class Category(enum.Enum):
     
     Attributes:
         HYPERTROPHY: Hypertrophy (muscle growth)
-        STRENGTH: Strength
-        ENDURANCE: Endurance
-        BALANCE: Balance
-        FLEXIBILITY: Flexibility
-        COORDINATION: Coordination
-        POWER: Power
+        STRENGTH: Strength (strength training)
     """
     HYPERTROPHY = "hypertrophy"
     STRENGTH = "strength"
-    ENDURANCE = "endurance"
-    BALANCE = "balance"
-    FLEXIBILITY = "flexibility"
-    COORDINATION = "coordination"
-    POWER = "power"
 
 class Workout(Base):
     """
@@ -78,9 +69,10 @@ class Workout(Base):
         created_at: Creation date of the record
         updated_at: Date of the last update to the record
         
-    Relationships:
+            Relationships:
         user: Relationship with the user who owns the workout
-        exercise_logs: Relationship with the exercise logs of the workout
+        exercise_logs: Relationship with the strength exercise logs of the workout
+        cardio_logs: Relationship with the cardio exercise logs of the workout
     """
     __tablename__ = "workouts"
 
@@ -109,7 +101,8 @@ class Workout(Base):
     
     # Relationships
     user = relationship("User", back_populates="workouts")
-    exercise_logs = relationship("ExerciseLog", back_populates="workout", cascade="all, delete-orphan")
+    exercise_logs = relationship("StrengthLog", back_populates="workout", cascade="all, delete-orphan")
+    cardio_logs = relationship("CardioLog", back_populates="workout", cascade="all, delete-orphan")
 
     def __repr__(self):
         """String representation of the workout."""

@@ -1,4 +1,6 @@
-# db/models/chat_history.py
+"""
+ORM model for the chat history table.
+"""
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship

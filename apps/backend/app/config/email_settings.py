@@ -1,3 +1,10 @@
+"""
+Email service configuration for FitCoach AI.
+
+Handles SMTP server settings for sending verification emails
+and password reset notifications.
+"""
+
 import os
 
 class EmailSettings:

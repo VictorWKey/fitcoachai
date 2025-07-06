@@ -1,9 +1,17 @@
+"""
+Core workout service for FitCoach AI.
+
+Handles workout creation, exercise logging (strength and cardio),
+and workout statistics with user-specific data management.
+"""
+
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func
 from db.models.workout import Workout
-from db.models.exercise_log import ExerciseLog
+from db.models.strength_log import StrengthLog
+from db.models.cardio_log import CardioLog
 from db.models.user import User
 from exceptions.api import NotFoundException
 
@@ -57,7 +65,7 @@ class CoreWorkoutService:
         return workout
     
     @staticmethod
-    async def log_exercise(
+    async def log_strength_exercise(
         db: AsyncSession,
         workout_id: int,
         user_id: int,
@@ -66,9 +74,9 @@ class CoreWorkoutService:
         reps: int,
         weight: Optional[float] = None,
         notes: Optional[str] = None
-    ) -> ExerciseLog:
+    ) -> StrengthLog:
         """
-        Logs an exercise in a workout.
+        Logs a strength exercise in a workout.
         
         Args:
             db: Database session
@@ -81,7 +89,7 @@ class CoreWorkoutService:
             notes: Optional notes
             
         Returns:
-            The created exercise log
+            The created strength exercise log
             
         Raises:
             NotFoundException: If the workout does not exist or does not belong to the user
@@ -99,14 +107,74 @@ class CoreWorkoutService:
         if not workout:
             raise NotFoundException(f"Workout with ID {workout_id} not found for this user")
         
-        exercise_log = ExerciseLog(
+        exercise_log = StrengthLog(
+            user_id=user_id,
             workout_id=workout_id,
             exercise_name=exercise_name,
-            sets=sets,
             reps=reps,
             weight=weight,
             notes=notes,
-            logged_at=datetime.now(timezone.utc)
+            exercise_date=datetime.now(timezone.utc)
+        )
+        
+        db.add(exercise_log)
+        await db.commit()
+        await db.refresh(exercise_log)
+        
+        return exercise_log
+
+    @staticmethod
+    async def log_cardio_exercise(
+        db: AsyncSession,
+        workout_id: int,
+        user_id: int,
+        exercise_name: str,
+        cardio_type: Optional[str] = None,
+        total_duration_seconds: Optional[int] = None,
+        avg_heart_rate: Optional[int] = None,
+        notes: Optional[str] = None
+    ) -> CardioLog:
+        """
+        Logs a cardio exercise in a workout.
+        
+        Args:
+            db: Database session
+            workout_id: Workout ID
+            user_id: User ID
+            exercise_name: Name of the exercise
+            cardio_type: Type of cardio (HIIT, LISS, etc.)
+            total_duration_seconds: Duration in seconds
+            avg_heart_rate: Average heart rate
+            notes: Optional notes
+            
+        Returns:
+            The created cardio exercise log
+            
+        Raises:
+            NotFoundException: If the workout does not exist or does not belong to the user
+        """
+        # Verify that the workout exists and belongs to the user
+        result = await db.execute(
+            select(Workout).where(
+                and_(
+                    Workout.id == workout_id,
+                    Workout.user_id == user_id
+                )
+            )
+        )
+        workout = result.scalars().first()
+        if not workout:
+            raise NotFoundException(f"Workout with ID {workout_id} not found for this user")
+        
+        exercise_log = CardioLog(
+            user_id=user_id,
+            workout_id=workout_id,
+            exercise_name=exercise_name,
+            cardio_type=cardio_type,
+            total_duration_seconds=total_duration_seconds,
+            avg_heart_rate=avg_heart_rate,
+            notes=notes,
+            exercise_date=datetime.now(timezone.utc)
         )
         
         db.add(exercise_log)
@@ -165,34 +233,69 @@ class CoreWorkoutService:
         )
         total_workouts = workout_count.scalar_one()
         
-        # Count total exercises
-        exercise_count = await db.execute(
-            select(func.count(ExerciseLog.id))
-            .join(Workout, ExerciseLog.workout_id == Workout.id)
+        # Count total strength exercises
+        strength_exercise_count = await db.execute(
+            select(func.count(StrengthLog.id))
+            .join(Workout, StrengthLog.workout_id == Workout.id)
             .where(Workout.user_id == user_id)
         )
-        total_exercises = exercise_count.scalar_one()
+        total_strength_exercises = strength_exercise_count.scalar_one()
         
-        # Get the most frequent exercises
-        top_exercises = await db.execute(
+        # Count total cardio exercises
+        cardio_exercise_count = await db.execute(
+            select(func.count(CardioLog.id))
+            .join(Workout, CardioLog.workout_id == Workout.id)
+            .where(Workout.user_id == user_id)
+        )
+        total_cardio_exercises = cardio_exercise_count.scalar_one()
+        
+        total_exercises = total_strength_exercises + total_cardio_exercises
+        
+        # Get the most frequent strength exercises
+        top_strength_exercises = await db.execute(
             select(
-                ExerciseLog.exercise_name,
-                func.count(ExerciseLog.id).label("count")
+                StrengthLog.exercise_name,
+                func.count(StrengthLog.id).label("count")
             )
-            .join(Workout, ExerciseLog.workout_id == Workout.id)
+            .join(Workout, StrengthLog.workout_id == Workout.id)
             .where(Workout.user_id == user_id)
-            .group_by(ExerciseLog.exercise_name)
-            .order_by(func.count(ExerciseLog.id).desc())
-            .limit(5)
+            .group_by(StrengthLog.exercise_name)
+            .order_by(func.count(StrengthLog.id).desc())
+            .limit(3)
         )
         
-        top_exercises_list = [
-            {"name": name, "count": count}
-            for name, count in top_exercises.all()
-        ]
+        # Get the most frequent cardio exercises
+        top_cardio_exercises = await db.execute(
+            select(
+                CardioLog.exercise_name,
+                func.count(CardioLog.id).label("count")
+            )
+            .join(Workout, CardioLog.workout_id == Workout.id)
+            .where(Workout.user_id == user_id)
+            .group_by(CardioLog.exercise_name)
+            .order_by(func.count(CardioLog.id).desc())
+            .limit(3)
+        )
+        
+        # Combine top exercises
+        top_exercises_list = []
+        
+        for name, count in top_strength_exercises.all():
+            if name:
+                top_exercises_list.append({"name": name, "count": count, "type": "strength"})
+        
+        for name, count in top_cardio_exercises.all():
+            if name:
+                top_exercises_list.append({"name": name, "count": count, "type": "cardio"})
+        
+        # Sort by count and limit to top 5
+        top_exercises_list.sort(key=lambda x: x["count"], reverse=True)
+        top_exercises_list = top_exercises_list[:5]
         
         return {
             "total_workouts": total_workouts,
             "total_exercises": total_exercises,
+            "total_strength_exercises": total_strength_exercises,
+            "total_cardio_exercises": total_cardio_exercises,
             "top_exercises": top_exercises_list
         }

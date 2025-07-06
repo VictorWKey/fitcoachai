@@ -1,10 +1,17 @@
+"""
+Database configuration for FitCoach AI.
+
+Manages PostgreSQL connection settings, connection pooling,
+and provides both SQLAlchemy and psycopg database URLs.
+"""
+
 import os
 
 class DatabaseSettings:
     """Database configuration."""
     
     # Get the database URL from environment variables
-    raw_db_url: str = os.getenv("DATABASE_URL")
+    raw_db_url: str = os.getenv("DATABASE_URL", "postgresql://fitcoach:fitcoach@localhost:5432/fitcoach")
     
     # URL for SQLAlchemy (with asyncpg driver)
     @property

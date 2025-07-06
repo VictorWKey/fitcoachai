@@ -1,10 +1,17 @@
-# agent/agent.py
+"""
+LangGraph agent implementation for FitCoach AI.
+
+This module contains the core agent logic using LangGraph, including state management,
+message handling, and tool integration for the fitness coaching assistant.
+"""
+
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import trim_messages
 from typing_extensions import TypedDict
 from typing import Annotated, Union
 from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_core.messages.utils import count_tokens_approximately
+from agent.prompts import SYSTEM_MESSAGE
 
 def get_agent(llm, checkpointer, tools):
     """
@@ -58,7 +65,7 @@ def get_agent(llm, checkpointer, tools):
         """
         return {"messages": [await llm.ainvoke(state["messages"])]}
     
-    async def prepare_llm_context(state: State):
+    async def prepare_llm_context(state: State, ):
         """
         Triggers the context management logic before sending messages to the LLM.
 
@@ -68,7 +75,11 @@ def get_agent(llm, checkpointer, tools):
         Returns:
             A dictionary signaling that context should be managed.
         """
-        return {"messages": {"type": "manage_context"}}
+        if len(state["messages"]) == 1 and not hasattr(state["messages"][0], 'type') or state["messages"][0].type != 'system':
+            return {"messages": [SYSTEM_MESSAGE] + state["messages"]}
+        
+        if len(state["messages"]) > 10:
+            return {"messages": {"type": "manage_context"}}
 
     tool_node = ToolNode(tools=tools)
 

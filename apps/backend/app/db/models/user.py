@@ -1,6 +1,5 @@
 """
 ORM model for the users table.
-Defines the structure and relationships of users in the database.
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
@@ -31,9 +30,10 @@ class User(Base):
         created_at: User creation date
         updated_at: Date of the last update to the user
         
-    Relationships:
+            Relationships:
         workouts: Relationship with user's workouts
-        exercise_logs: Relationship with user's exercise logs
+        exercise_logs: Relationship with user's strength exercise logs
+        cardio_logs: Relationship with user's cardio exercise logs
     """
     __tablename__ = "users"
 
@@ -56,7 +56,8 @@ class User(Base):
 
     # Relationships
     workouts = relationship("Workout", back_populates="user", cascade="all, delete-orphan")
-    exercise_logs = relationship("ExerciseLog", back_populates="user", cascade="all, delete-orphan")
+    exercise_logs = relationship("StrengthLog", back_populates="user", cascade="all, delete-orphan")
+    cardio_logs = relationship("CardioLog", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         """String representation of the user."""
