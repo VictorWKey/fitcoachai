@@ -56,12 +56,12 @@ class StrengthLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     workout_id = Column(Integer, ForeignKey("workouts.id"), nullable=False)
-    exercise_name = Column(String, nullable=True)
+    exercise_name = Column(String, nullable=False)
     exercise_type = Column(Enum(ExerciseType), nullable=True)
-    set_number = Column(Integer, nullable=True)
-    reps = Column(Integer, nullable=True)
-    weight = Column(Float, nullable=True)
-    weight_unit = Column(Enum(WeightUnit), nullable=True)
+    set_number = Column(Integer, nullable=False)
+    reps = Column(Integer, nullable=False)
+    weight = Column(Float, nullable=False)
+    weight_unit = Column(Enum(WeightUnit), nullable=False)
     one_rm_percentage = Column(Float, nullable=True)  # 30-120%
     rir = Column(Integer, nullable=True)
     rpe = Column(Float, nullable=True)  # 1-10 scale

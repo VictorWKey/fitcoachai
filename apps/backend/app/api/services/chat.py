@@ -8,7 +8,6 @@ and the LangChain agent.
 
 from langchain_core.messages import SystemMessage
 from agent.prompts import SYSTEM_MESSAGE, USER_MESSAGE
-from agent.context import get_history_context
 
 async def process_agent(
     user_input: str, 
@@ -27,14 +26,8 @@ async def process_agent(
     Returns:
         dict: The agent's response.
     """
-    user_history_context = await get_history_context(
-        config["configurable"]["user_id"], 
-        n_logs=3
-    )
-
     user_messages = USER_MESSAGE.format_messages(
-        input=user_input, 
-        history=user_history_context
+        input=user_input
     )
 
     response = await agent.ainvoke(

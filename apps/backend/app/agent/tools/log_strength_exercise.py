@@ -41,6 +41,21 @@ async def log_strength_exercise(
     configurable = config.get("configurable", {})
     user_id = configurable.get("user_id")
     llm = configurable.get("llm")
+
+    if not exercise_name:
+        raise ValueError("Nombre del ejercicio requerido")
+
+    if not set_number:
+        raise ValueError("Número de serie requerido")
+
+    if not reps:
+        raise ValueError("Número de repeticiones requerido")
+
+    if not weight:
+        raise ValueError("Peso requerido")
+    
+    if not weight_unit:
+        raise ValueError("Unidad de peso requerida")
     
     if not user_id:
         raise ValueError("user_id is required")

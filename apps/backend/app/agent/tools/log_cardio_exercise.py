@@ -40,9 +40,17 @@ async def log_cardio_exercise(
     configurable = config.get("configurable", {})
     user_id = configurable.get("user_id")
     llm = configurable.get("llm")
-    
+
     if not user_id:
         raise ValueError("user_id is required")
+
+    if not exercise_name:
+        raise ValueError("exercise_name is required") 
+    elif not cardio_type:
+        raise ValueError("cardio_type is required")   
+    elif not total_duration_seconds:
+        raise ValueError("total_duration_seconds is required")
+    
     
     # Prepare exercise data for workout type inference
     exercise_data = {
