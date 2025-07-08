@@ -32,11 +32,9 @@ def to_dict(log):
         "set_number": log.set_number,
         "rir": log.rir,
         "rpe": log.rpe,
-        "weight_unit": log.weight_unit,
+        "weight_unit": log.weight_unit.value if log.weight_unit else None,
         "one_rm_percentage": log.one_rm_percentage,
-        "tempo_eccentric": log.tempo_eccentric,
-        "tempo_pause_bottom": log.tempo_pause_bottom,
-        "tempo_concentric": log.tempo_concentric,
+        "tempo": log.tempo,
         "rest_time_seconds": log.rest_time_seconds,
         "notes": log.notes
     }
@@ -53,12 +51,16 @@ def cardio_to_dict(log):
     """
     return {
         "type": "cardio",
-        "cardio_type": log.cardio_type,
+        "exercise_name": log.exercise_name,
+        "cardio_type": log.cardio_type.value if log.cardio_type else None,
         "total_duration_seconds": log.total_duration_seconds,
-        "intervals_completed": log.intervals_completed,
-        "work_rest_ratio": log.work_rest_ratio,
+        "distance": log.distance,
+        "distance_unit": log.distance_unit.value if log.distance_unit else None,
+        "calories_burned": log.calories_burned,
         "avg_heart_rate": log.avg_heart_rate,
         "avg_rpe": log.avg_rpe,
+        "intensity_level": log.intensity_level,
+        "incline_level": log.incline_level,
         "notes": log.notes
     }
 

@@ -61,8 +61,6 @@ async def get_or_create_workout_id(user_id: int, exercise_log_data=None, llm=Non
         )
         last_workout = result.scalar_one_or_none()
 
-        assert last_workout is not None
-
         # Check if we need to create a new workout
         create_new_workout = (
             last_workout is None or 
@@ -77,11 +75,11 @@ async def get_or_create_workout_id(user_id: int, exercise_log_data=None, llm=Non
         )
         
         # If the last workout is inactive but not finished, finalize it
-        if inactive_workout:
+        if inactive_workout and last_workout is not None:
             await finalize_workout(db, cast(int, last_workout.id), llm)
             create_new_workout = True
         
-        if create_new_workout:
+        if create_new_workout or last_workout is None:
             # Default values
             muscle_group = MuscleGroup.FULL_BODY
             category = Category.HYPERTROPHY

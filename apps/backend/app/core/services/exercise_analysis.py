@@ -69,41 +69,46 @@ def infer_series_type(
     hypertrophy_score = 0
     technique_score = 0
     
-    # 1. Evaluate 1RM percentage (high weight)
+    # 1. Evaluate 1RM percentage (high weight) - HIGHEST PRIORITY
     if one_rm_percentage is not None:
         if one_rm_percentage >= 85:
-            strength_score += 3
+            strength_score += 5
         elif 75 <= one_rm_percentage < 85:
-            strength_score += 2
+            strength_score += 3
             hypertrophy_score += 1
         elif 60 <= one_rm_percentage < 75:
-            hypertrophy_score += 2
+            hypertrophy_score += 4
             strength_score += 1
         elif one_rm_percentage < 60:
-            technique_score += 2
+            technique_score += 3
     
-    # 2. Evaluate RPE and RIR together
-    if rpe is not None:
-        if rpe >= 6:
-            strength_score += 2
-            hypertrophy_score += 2
-        elif rpe < 6:
-            technique_score += 2
-    
-    if rir is not None:
-        if rir <= 4:
-            strength_score += 2
-            hypertrophy_score += 2
-        elif rir > 4:
-            technique_score += 2
-    
-    # 3. Evaluate reps in combination with other parameters
+    # 2. Evaluate reps - SECOND HIGHEST PRIORITY
     if reps is not None:
         if reps <= 5:
-            strength_score += 1
+            strength_score += 4
         elif 6 <= reps <= 12:
-            hypertrophy_score += 1
+            hypertrophy_score += 4
         elif reps > 12:
+            technique_score += 3
+            hypertrophy_score += 1
+    
+    # 3. Evaluate RPE and RIR - THIRD PRIORITY
+    if rpe is not None:
+        if rpe >= 8:
+            strength_score += 1
+            hypertrophy_score += 2
+        elif 6 <= rpe < 8:
+            hypertrophy_score += 2
+        elif rpe < 6:
+            technique_score += 1
+    
+    if rir is not None:
+        if rir <= 1:
+            strength_score += 1
+            hypertrophy_score += 2
+        elif 2 <= rir <= 3:
+            hypertrophy_score += 2
+        elif rir > 3:
             technique_score += 1
     
     # 4. Evaluate tempo
@@ -114,31 +119,31 @@ def infer_series_type(
     # 5. Evaluate rest time
     if rest_time_seconds is not None:
         if rest_time_seconds > 240:
-            strength_score += 2
+            strength_score += 1
         elif 90 <= rest_time_seconds <= 240:
-            hypertrophy_score += 2
+            hypertrophy_score += 1
         elif rest_time_seconds < 90:
-            technique_score += 2
+            technique_score += 1
     
-    # High 1RM + Low RPE/RIR = Technique (not strength)
-    if one_rm_percentage is not None and one_rm_percentage >= 75:
-        if (rpe is not None and rpe < 6) or (rir is not None and rir > 4):
-            technique_score += 3
+    # Special case rules for common combinations
+    
+    # High reps (6-12) + Low RIR (0-2) = Almost always hypertrophy
+    if reps is not None and 6 <= reps <= 12:
+        if rir is not None and rir <= 2:
+            hypertrophy_score += 3
             strength_score -= 2
     
-    # Low 1RM + High RPE/RIR = Hypertrophy (not technique)
-    if one_rm_percentage is not None and one_rm_percentage <= 60:
-        if (rpe is not None and rpe >= 6) or (rir is not None and rir <= 3):
-            hypertrophy_score += 3
-            technique_score -= 2
+    # Very high reps (>12) = Almost never strength
+    if reps is not None and reps > 12:
+        strength_score = max(0, strength_score - 3)
     
-    # High reps + High RPE = Hypertrophy (not technique)
-    if reps is not None and reps >= 8:
-        if (rpe is not None and rpe >= 6) or (rir is not None and rir <= 3):
-            hypertrophy_score += 2
-            technique_score -= 1
+    # Very low reps (1-3) + high intensity = Almost always strength
+    if reps is not None and reps <= 3:
+        if (rir is not None and rir <= 1) or (rpe is not None and rpe >= 9):
+            strength_score += 3
+            hypertrophy_score -= 1
     
-    # 9. Determine final type based on highest score
+    # Determine final type based on highest score
     scores = {
         ExerciseType.STRENGTH: strength_score,
         ExerciseType.HIPERTROPHY: hypertrophy_score,

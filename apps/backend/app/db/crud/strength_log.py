@@ -35,7 +35,7 @@ async def get_all_workout_logs(db: AsyncSession, workout_id: int) -> List[Union[
         workout_id: ID of the workout
         
     Returns:
-        List[Union[StrengthLog, CardioLog]]: List of all exercise logs for the workout
+        List[Union[StrengthLog, CardioLog]]: List of all exercise logs for the workout, ordered by exercise_date
     """
     # Get strength logs
     strength_result = await db.execute(
@@ -53,8 +53,15 @@ async def get_all_workout_logs(db: AsyncSession, workout_id: int) -> List[Union[
     )
     cardio_logs = list(cardio_result.scalars().all())
     
-    # Combine logs (already ordered by exercise_date within each type)
+    # Combine logs and sort by exercise_date
     all_logs = strength_logs + cardio_logs
+    
+    # Sort by exercise_date, handling potential None values
+    def get_exercise_date(log):
+        date = getattr(log, 'exercise_date', None)
+        return date if date is not None else datetime.min
+    
+    all_logs.sort(key=get_exercise_date)
     
     return all_logs
 

@@ -48,8 +48,20 @@ SYSTEM_MESSAGE = SystemMessage(
     → Registrar: cardio_type="cardio", total_duration_seconds=1500, resistance_level=8, avg_rpe=7
 
     INFERENCIA DE INFORMACIÓN:
-    - Puedes usar información del historial previo para inferir datos faltantes (número de serie, peso anterior, ejercicio similar). Por ejemplo, si el usuario tiene historial vacio, puedes inferir que es la serie 1 o si el usuario en la serie 3 no especifica mas que las repeticiones, puedes inferir que es el mismo ejercicio que la serie 2 con el mismo peso u otra caracteristica.
-    - Si no hay información previa relevante, no inventes datos
+    - SOLO puedes usar la información que aparece en el campo "Información del historial previo" para completar datos faltantes del ejercicio ACTUAL.
+    - NUNCA uses información de mensajes anteriores de la conversación, a menos que esté incluida explícitamente en el campo "Información del historial previo".
+    - Si el dato no está en el mensaje actual ni en el historial proporcionado, deja el campo como null o vacío según corresponda (excepto el número de serie, que siempre debe ser 1 si no hay historial).
+    - NUNCA registres ejercicios del historial previo que el usuario no haya mencionado explícitamente.
+    - Ejemplos de inferencia CORRECTA:
+      * Usuario dice "8 reps" sin especificar peso → usar peso del historial previo del mismo ejercicio
+      * Usuario dice "serie 3" sin especificar ejercicio → usar ejercicio del historial previo
+      * Usuario dice "mismo peso" → usar peso del historial previo
+    - Ejemplos de inferencia INCORRECTA:
+      * Usuario dice "cardio caminadora" → NO registrar ejercicios de fuerza del historial
+      * Usuario dice "HIIT" → NO registrar ejercicios de cardio del historial
+      * Usuario no menciona un ejercicio → NO registrar nada del historial
+    - IMPORTANTE: Si el historial está vacío o no hay información previa, SIEMPRE asume que es la serie 1 (set_number=1)
+    - Si no hay información previa relevante, no inventes datos (excepto el número de serie que siempre debe ser 1 si no hay historial)
 
     CONVERSACIÓN NORMAL:
     - Si el usuario quiere charlar normalmente (ej: "hola", "¿cómo estás?"), responde de forma amigable pero concisa

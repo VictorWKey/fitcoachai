@@ -51,7 +51,7 @@ class StrengthLog(Base):
         workout: Relationship with the workout to which it belongs
         user: Relationship with the user who performed the exercise
     """
-    __tablename__ = "exercise_logs"
+    __tablename__ = "strength_logs"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

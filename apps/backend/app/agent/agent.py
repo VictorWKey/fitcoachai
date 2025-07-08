@@ -37,18 +37,23 @@ def get_agent(llm, checkpointer, tools):
         Returns:
             The updated message list.
         """
-        if isinstance(updates, list):
-            return existing + updates
-        elif isinstance(updates, dict) and updates["type"] == "manage_context":
-            return trim_messages(
-                existing,
-                strategy="last",
-                token_counter=count_tokens_approximately,
-                max_tokens=1000,
-                start_on="human",
-                end_on=("human", "tool"),
-                include_system=True,
-            )
+        if isinstance(updates, dict):
+            if updates.get("type") == "manage_context":
+                return trim_messages(
+                    existing,
+                    strategy="last",
+                    token_counter=count_tokens_approximately,
+                    max_tokens=10000,
+                    start_on="human",
+                    end_on=("human", "tool"),
+                    include_system=True,
+                )
+            elif updates.get("type") == "replace_all":
+                # Reemplazar completamente los mensajes
+                return updates.get("messages", [])
+        
+        # Por defecto, agregamos los mensajes
+        return existing + updates if isinstance(updates, list) else existing
 
     class State(TypedDict):
         messages: Annotated[list, manage_list]
@@ -65,7 +70,7 @@ def get_agent(llm, checkpointer, tools):
         """
         return {"messages": [await llm.ainvoke(state["messages"])]}
     
-    async def prepare_llm_context(state: State, ):
+    async def prepare_llm_context(state: State):
         """
         Triggers the context management logic before sending messages to the LLM.
 
@@ -75,11 +80,22 @@ def get_agent(llm, checkpointer, tools):
         Returns:
             A dictionary signaling that context should be managed.
         """
-        if len(state["messages"]) == 1 and not hasattr(state["messages"][0], 'type') or state["messages"][0].type != 'system':
-            return {"messages": [SYSTEM_MESSAGE] + state["messages"]}
+        if len(state["messages"]) == 1:
+            # Para el primer mensaje, reemplazamos completamente el estado
+            # con el mensaje del sistema seguido del mensaje del usuario
+            return {
+                "messages": {
+                    "type": "replace_all",
+                    "messages": [SYSTEM_MESSAGE] + state["messages"]
+                }
+            }
         
+        # Verificamos si necesitamos gestionar el contexto por longitud
         if len(state["messages"]) > 10:
             return {"messages": {"type": "manage_context"}}
+            
+        # Si no se necesita hacer nada, devolvemos los mensajes sin cambios
+        return {"messages": []}
 
     tool_node = ToolNode(tools=tools)
 

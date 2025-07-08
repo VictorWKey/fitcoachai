@@ -9,7 +9,8 @@ focused on the needs of strength/hypertrophy athletes.
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
-from db.schemas.cardio_log import CardioLogCreate, CardioTypeEnum, DistanceUnitEnum
+from db.schemas.cardio_log import CardioLogCreate
+from db.models.cardio_log import CardioType, DistanceUnit
 from langchain_core.tools import tool
 from db.crud.cardio_log import create_cardio_log
 from db.session import db_session
@@ -23,10 +24,10 @@ from langchain_core.runnables import RunnableConfig
 async def log_cardio_exercise(
     config: RunnableConfig,
     exercise_name: str,
-    cardio_type: CardioTypeEnum,
+    cardio_type: CardioType,
     total_duration_seconds: int,
     distance: Optional[float] = None,
-    distance_unit: Optional[DistanceUnitEnum] = DistanceUnitEnum.KM,
+    distance_unit: Optional[DistanceUnit] = DistanceUnit.KM,
     calories_burned: Optional[int] = None,
     avg_heart_rate: Optional[int] = None,
     avg_rpe: Optional[float] = None,

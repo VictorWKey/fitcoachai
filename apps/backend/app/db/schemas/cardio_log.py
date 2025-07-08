@@ -21,16 +21,6 @@ from pydantic import BeforeValidator
 from enum import Enum
 from db.models.cardio_log import CardioType, DistanceUnit
 
-class CardioTypeEnum(str, Enum):
-    """Pydantic enum for cardio types"""
-    HIIT = "hiit"
-    STEADY_STATE = "steady_state"
-
-class DistanceUnitEnum(str, Enum):
-    """Pydantic enum for distance units"""
-    KM = "km"
-    MI = "mi"
-
 class CardioLogAgentBase(BaseModel):
     """
     Base schema for cardio training logs used by the LLM agent.
@@ -48,7 +38,7 @@ class CardioLogAgentBase(BaseModel):
         )
     ]
     cardio_type: Annotated[
-        CardioTypeEnum,
+        CardioType,
         Field(
             description="Tipo de entrenamiento cardiovascular. Opciones: 'hiit' (HIIT, Tabata), 'steady_state' (cardio constante, LISS, MISS)."
         )
@@ -69,9 +59,9 @@ class CardioLogAgentBase(BaseModel):
         )
     ]
     distance_unit: Annotated[
-        Optional[DistanceUnitEnum],
+        Optional[DistanceUnit],
         Field(
-            default=DistanceUnitEnum.KM,
+            default=DistanceUnit.KM,
             description="Unidad de distancia: 'km' para kilómetros, 'mi' para millas."
         )
     ]
@@ -156,10 +146,10 @@ class CardioLogUpdate(BaseModel):
     All fields are optional to allow partial updates.
     """
     exercise_name: Optional[str] = None
-    cardio_type: Optional[CardioTypeEnum] = None
+    cardio_type: Optional[CardioType] = None
     total_duration_seconds: Optional[int] = None
     distance: Optional[float] = None
-    distance_unit: Optional[DistanceUnitEnum] = None
+    distance_unit: Optional[DistanceUnit] = None
     calories_burned: Optional[int] = None
     avg_heart_rate: Optional[int] = None
     avg_rpe: Optional[float] = None
