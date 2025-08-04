@@ -24,20 +24,20 @@ async def get_cardio_log(db: AsyncSession, log_id: int) -> Optional[CardioLog]:
     result = await db.execute(select(CardioLog).where(CardioLog.id == log_id))
     return result.scalar_one_or_none()
 
-async def get_workout_cardio_logs(db: AsyncSession, workout_id: int) -> List[CardioLog]:
+async def get_session_cardio_logs(db: AsyncSession, session_id: int) -> List[CardioLog]:
     """
-    Gets all cardio logs for a workout.
+    Gets all cardio logs for a training session.
     
     Args:
         db: Database session
-        workout_id: ID of the workout
+        session_id: ID of the training session
         
     Returns:
-        List[CardioLog]: List of cardio logs for the workout
+        List[CardioLog]: List of cardio logs for the session
     """
     result = await db.execute(
         select(CardioLog)
-        .where(CardioLog.workout_id == workout_id)
+        .where(CardioLog.training_session_id == session_id)
         .order_by(CardioLog.exercise_date)
     )
     return list(result.scalars().all())

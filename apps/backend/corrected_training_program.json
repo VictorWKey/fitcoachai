@@ -1,0 +1,1124 @@
+{
+  "name": "Upper/Lower Complete Program",
+  "description": "Programa completo de 3 semanas con entrenamiento 6 días por semana - Upper/Lower split",
+  "program_type": "hypertrophy",
+  "duration_weeks": 3,
+  "training_weeks": [
+    {
+      "week_number": 1,
+      "description": "Semana 1 - Adaptación y base técnica",
+      "training_sessions": [
+        {
+          "name": "Upper Body Power",
+          "day_of_week": 1,
+          "session_order": 0,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Empuje",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 1,
+                  "sets": 4,
+                  "reps": 5,
+                  "tempo": "2-1-2-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 80.0,
+                  "rest_seconds": 180,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 2,
+                  "sets": 3,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Tracción",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 3,
+                  "sets": 3,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 4,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.0,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Power",
+          "day_of_week": 2,
+          "session_order": 1,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Squat",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 5,
+                  "sets": 4,
+                  "reps": 5,
+                  "tempo": "3-1-1-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 85.0,
+                  "rest_seconds": 240,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 6,
+                  "sets": 3,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 150,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Unilateral",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 7,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 8,
+                  "sets": 3,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "50-60",
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Upper Body Hypertrophy",
+          "day_of_week": 3,
+          "session_order": 2,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Press",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 9,
+                  "sets": 4,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 10,
+                  "sets": 3,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Brazos",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 11,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.0,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 12,
+                  "sets": 3,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.0,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Hypertrophy",
+          "day_of_week": 4,
+          "session_order": 3,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Deadlift",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 13,
+                  "sets": 4,
+                  "reps": 6,
+                  "tempo": "2-1-1-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 80.0,
+                  "rest_seconds": 180,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 14,
+                  "sets": 3,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Posterior",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 15,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 16,
+                  "sets": 3,
+                  "reps": 20,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "15-25",
+                  "rest_seconds": 45,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Upper Body Volume",
+          "day_of_week": 5,
+          "session_order": 4,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Pull",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 17,
+                  "sets": 4,
+                  "reps": 6,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 18,
+                  "sets": 3,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Hombros",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 19,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.0,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 20,
+                  "sets": 3,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "10-20",
+                  "rest_seconds": 45,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Volume",
+          "day_of_week": 6,
+          "session_order": 5,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Quad Focus",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 21,
+                  "sets": 4,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 22,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Core & Cardio",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 23,
+                  "sets": 3,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.0,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 24,
+                  "sets": 3,
+                  "reps": 30,
+                  "tempo": "1-0-1-0",
+                  "load_type": "weight",
+                  "weight_range": "0-10",
+                  "rest_seconds": 30,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 2,
+      "description": "Semana 2 - Progresión de intensidad",
+      "training_sessions": [
+        {
+          "name": "Upper Body Power",
+          "day_of_week": 1,
+          "session_order": 0,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Empuje",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 1,
+                  "sets": 4,
+                  "reps": 4,
+                  "tempo": "2-1-2-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 85.0,
+                  "rest_seconds": 180,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 2,
+                  "sets": 3,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Tracción",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 3,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 4,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Power",
+          "day_of_week": 2,
+          "session_order": 1,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Squat",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 5,
+                  "sets": 4,
+                  "reps": 4,
+                  "tempo": "3-1-1-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 87.5,
+                  "rest_seconds": 240,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 6,
+                  "sets": 3,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 150,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Unilateral",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 7,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 8,
+                  "sets": 3,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "55-65",
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Upper Body Hypertrophy",
+          "day_of_week": 3,
+          "session_order": 2,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Press",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 9,
+                  "sets": 4,
+                  "reps": 7,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 10,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Brazos",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 11,
+                  "sets": 4,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 12,
+                  "sets": 4,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Hypertrophy",
+          "day_of_week": 4,
+          "session_order": 3,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Deadlift",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 13,
+                  "sets": 4,
+                  "reps": 5,
+                  "tempo": "2-1-1-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 85.0,
+                  "rest_seconds": 180,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 14,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Posterior",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 15,
+                  "sets": 4,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 16,
+                  "sets": 3,
+                  "reps": 20,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "20-30",
+                  "rest_seconds": 45,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Upper Body Volume",
+          "day_of_week": 5,
+          "session_order": 4,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Pull",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 17,
+                  "sets": 4,
+                  "reps": 5,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 120,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 18,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Hombros",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 19,
+                  "sets": 4,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 20,
+                  "sets": 3,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "15-25",
+                  "rest_seconds": 45,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Volume",
+          "day_of_week": 6,
+          "session_order": 5,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Quad Focus",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 21,
+                  "sets": 4,
+                  "reps": 7,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 22,
+                  "sets": 4,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Core & Cardio",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 23,
+                  "sets": 4,
+                  "reps": 15,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 7.5,
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 24,
+                  "sets": 3,
+                  "reps": 45,
+                  "tempo": "1-0-1-0",
+                  "load_type": "weight",
+                  "weight_range": "5-15",
+                  "rest_seconds": 30,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "week_number": 3,
+      "description": "Semana 3 - Pico de intensidad",
+      "training_sessions": [
+        {
+          "name": "Upper Body Power",
+          "day_of_week": 1,
+          "session_order": 0,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Empuje",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 1,
+                  "sets": 5,
+                  "reps": 3,
+                  "tempo": "2-1-2-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 90.0,
+                  "rest_seconds": 240,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 2,
+                  "sets": 4,
+                  "reps": 6,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 150,
+                  "sets_type": "strength"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Tracción",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 3,
+                  "sets": 4,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 4,
+                  "sets": 3,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Power",
+          "day_of_week": 2,
+          "session_order": 1,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Squat",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 5,
+                  "sets": 5,
+                  "reps": 3,
+                  "tempo": "3-1-1-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 92.5,
+                  "rest_seconds": 300,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 6,
+                  "sets": 4,
+                  "reps": 6,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 180,
+                  "sets_type": "strength"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Unilateral",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 7,
+                  "sets": 3,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 8,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "60-70",
+                  "rest_seconds": 90,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Upper Body Hypertrophy",
+          "day_of_week": 3,
+          "session_order": 2,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Press",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 9,
+                  "sets": 5,
+                  "reps": 6,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.5,
+                  "rest_seconds": 150,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 10,
+                  "sets": 4,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Brazos",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 11,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 75,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 12,
+                  "sets": 4,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 75,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Hypertrophy",
+          "day_of_week": 4,
+          "session_order": 3,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Deadlift",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 13,
+                  "sets": 5,
+                  "reps": 3,
+                  "tempo": "2-1-1-1",
+                  "load_type": "percentage",
+                  "percentage_1rm": 90.0,
+                  "rest_seconds": 240,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 14,
+                  "sets": 4,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 150,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Posterior",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 15,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 16,
+                  "sets": 3,
+                  "reps": 25,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "25-35",
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Upper Body Volume",
+          "day_of_week": 5,
+          "session_order": 4,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Pull",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 17,
+                  "sets": 5,
+                  "reps": 4,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.5,
+                  "rest_seconds": 150,
+                  "sets_type": "strength"
+                },
+                {
+                  "standard_exercise_id": 18,
+                  "sets": 4,
+                  "reps": 8,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Hombros",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 19,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 75,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 20,
+                  "sets": 3,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "weight",
+                  "weight_range": "20-30",
+                  "rest_seconds": 60,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lower Body Volume",
+          "day_of_week": 6,
+          "session_order": 5,
+          "exercise_blocks": [
+            {
+              "name": "Bloque Principal - Quad Focus",
+              "block_type": "main",
+              "order": 1,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 21,
+                  "sets": 5,
+                  "reps": 6,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 9.0,
+                  "rest_seconds": 150,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 22,
+                  "sets": 4,
+                  "reps": 10,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.5,
+                  "rest_seconds": 120,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            },
+            {
+              "name": "Bloque Accesorio - Core & Cardio",
+              "block_type": "accessory",
+              "order": 2,
+              "programmed_exercises": [
+                {
+                  "standard_exercise_id": 23,
+                  "sets": 4,
+                  "reps": 12,
+                  "tempo": "2-1-2-1",
+                  "load_type": "rpe",
+                  "rpe_target": 8.0,
+                  "rest_seconds": 75,
+                  "sets_type": "hypertrophy"
+                },
+                {
+                  "standard_exercise_id": 24,
+                  "sets": 3,
+                  "reps": 60,
+                  "tempo": "1-0-1-0",
+                  "load_type": "weight",
+                  "weight_range": "10-20",
+                  "rest_seconds": 45,
+                  "sets_type": "hypertrophy"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

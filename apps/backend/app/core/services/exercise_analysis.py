@@ -7,7 +7,7 @@ exercise types, training zones, and other exercise-related insights.
 
 from typing import Optional, Literal, Dict, Union
 from enum import Enum
-from db.models.strength_log import ExerciseType, WeightUnit
+from db.models.strength_log import SetType, WeightUnit
 from utils.tempo_utils import parse_tempo, validate_tempo
 
 
@@ -18,7 +18,7 @@ def infer_series_type(
     rpe: Optional[float] = None,
     tempo: Optional[str] = None,
     rest_time_seconds: Optional[int] = None,
-) -> ExerciseType:
+) -> SetType:
     """
     Infer the type of exercise series based on multiple parameters simultaneously.
     
@@ -145,15 +145,15 @@ def infer_series_type(
     
     # Determine final type based on highest score
     scores = {
-        ExerciseType.STRENGTH: strength_score,
-        ExerciseType.HIPERTROPHY: hypertrophy_score,
-        ExerciseType.TECHNIQUE: technique_score
+        SetType.STRENGTH: strength_score,
+        SetType.HIPERTROPHY: hypertrophy_score,
+        SetType.TECHNIQUE: technique_score
     }
     
     # If all scores are equal or very close, default to hypertrophy
     max_score = max(scores.values())
     if max_score == 0:
-        return ExerciseType.HIPERTROPHY  # Default fallback
+        return SetType.HIPERTROPHY  # Default fallback
     
     # Return the type with the highest score
     return max(scores.items(), key=lambda x: x[1])[0]

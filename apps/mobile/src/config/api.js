@@ -17,11 +17,18 @@ const getApiBaseUrl = () => {
   }
 
   // En producción, usa la URL de tu API en producción
-  return 'https://tu-api-produccion.com';
+  return 'https://api.fitcoachai.com';
 };
 
 console.log(getApiBaseUrl());
 export const API_BASE_URL = getApiBaseUrl();
+
+// Rate limits según el frontend integration guide
+export const RATE_LIMITS = {
+  GENERAL: 100, // requests per minute
+  AUTH: 10,     // requests per minute
+  CHAT: 30      // requests per minute
+};
 
 // Endpoints de la API
 export const API_ENDPOINTS = {
@@ -40,13 +47,29 @@ export const API_ENDPOINTS = {
   CHAT: '/chat/',
   CHAT_HISTORY: '/chat/history',
 
-  // Workouts
-  WORKOUTS: '/workouts/',
-  WORKOUT_ACTIVE: '/workouts/active',
-  WORKOUT_BY_ID: (id) => `/workouts/${id}`,
-  WORKOUT_FINISH: (id) => `/workouts/${id}/finish`,
-  WORKOUT_EXERCISES: (id) => `/workouts/${id}/exercises`,
-  WORKOUT_EXERCISE_BY_ID: (workoutId, exerciseId) => `/workouts/${workoutId}/exercises/${exerciseId}`,
+  // Training Programs
+  TRAINING_PROGRAMS: '/training-programs/',
+  TRAINING_PROGRAM_BY_ID: (id) => `/training-programs/${id}`,
+  TRAINING_PROGRAM_PROGRESS: (id) => `/training-programs/${id}/progress`,
+  TRAINING_PROGRAM_CLONE: (id) => `/training-programs/${id}/clone`,
+  TRAINING_PROGRAM_SESSIONS: (programId) => `/training-programs/${programId}/sessions`,
+  TRAINING_PROGRAM_WEEK_DETAILS: (programId, weekNumber) => `/training-programs/${programId}/weeks/${weekNumber}`,
+
+  // Sessions
+  SESSIONS_START: (sessionId) => `/sessions/start/${sessionId}`,
+  SESSIONS_FINISH: '/sessions/finish',
+  SESSIONS_ACTIVE: '/sessions/active',
+  SESSIONS_STATUS: '/sessions/status',   // Nuevo endpoint para verificar estado
+  SESSIONS_HEARTBEAT: '/sessions/heartbeat',  // Nuevo endpoint para actualizar actividad
+  SESSIONS_PAUSE: '/sessions/pause',     // Nuevo endpoint para pausar manualmente
+  SESSIONS_RESUME: '/sessions/resume',   // Nuevo endpoint para reanudar sesión
+  SESSIONS_ABANDON: '/sessions/abandon', // Nuevo endpoint para abandonar sesión
+  SESSIONS_HISTORY: '/sessions/history',
+  SESSIONS_BY_ID: (sessionId) => `/sessions/${sessionId}`,
+  SESSIONS_LOGS: '/sessions/logs',
+  SESSIONS_LOGS_STRENGTH: '/sessions/logs/strength',
+  SESSIONS_LOGS_CARDIO: '/sessions/logs/cardio',
+  SESSIONS_LOGS_EXERCISE_PROGRESS: (exerciseId) => `/sessions/logs/exercise/${exerciseId}/progress`,
 
   // Exercises
   EXERCISES_RECENT: '/exercises/recent',
@@ -54,14 +77,17 @@ export const API_ENDPOINTS = {
   EXERCISES_STATS: '/exercises/stats',
   EXERCISES_SEARCH: '/exercises/search',
   EXERCISES_PROGRESS: (exerciseName) => `/exercises/progress/${exerciseName}`,
-  EXERCISES_CATALOG: '/exercises/catalog'
+  EXERCISES_CATALOG: '/exercises/catalog',
+  EXERCISES_STANDARD: '/exercises/standard'
 };
 
-// Configuración de los headers para las peticiones
+// Configuración de los headers para las peticiones según el frontend integration guide
 export const API_HEADERS = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
+  'X-Platform': Platform.OS,
+  'X-App-Version': '1.0.0',
 };
 
-// Tiempo de espera para las peticiones en milisegundos
-export const API_TIMEOUT = 10000; // 10 segundos 
+// Tiempo de espera para las peticiones en milisegundos (específico por plataforma)
+export const API_TIMEOUT = Platform.OS === 'ios' ? 10000 : 15000; 

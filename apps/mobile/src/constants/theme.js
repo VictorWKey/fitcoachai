@@ -1,40 +1,40 @@
 /**
- * Tema y constantes de estilo para la aplicación
+ * Tema y constantes de estilo para la aplicación en modo oscuro
  */
 
 // Colores
 export const COLORS = {
   // Colores primarios
-  primary: '#007AFF',
-  primaryDark: '#0062cc',
-  primaryLight: '#e6f2ff',
-  
+  primary: '#fbc736',
+  primaryDark: '#e6b01f',
+  primaryLight: '#ffd45e',
+
   // Colores secundarios
-  secondary: '#FF9500',
-  secondaryDark: '#cc7700',
-  secondaryLight: '#fff5e6',
-  
+  secondary: '#8A2BE2',
+  secondaryDark: '#6a1fb0',
+  secondaryLight: '#a555e9',
+
   // Colores de texto
-  textDark: '#333',
-  textMedium: '#666',
-  textLight: '#999',
-  
+  textDark: '#f0f0f0',
+  textMedium: '#c0c0c0',
+  textLight: '#909090',
+
   // Colores de fondo
-  background: '#f8f9fa',
-  card: '#fff',
-  input: '#f5f7fa',
-  
+  background: '#121212',
+  card: '#1e1e1e',
+  input: '#2a2a2a',
+
   // Colores de estado
-  success: '#34C759',
-  error: '#FF3B30',
-  warning: '#FFCC00',
-  info: '#5AC8FA',
-  
+  success: '#4CAF50',
+  error: '#FF5252',
+  warning: '#FFC107',
+  info: '#29B6F6',
+
   // Colores para chat
-  userBubble: '#007AFF',
-  userText: '#fff',
-  aiBubble: '#e6e6e6',
-  aiText: '#333',
+  userBubble: '#fbc736',
+  userText: '#121212',
+  aiBubble: '#2a2a2a',
+  aiText: '#f0f0f0',
 };
 
 // Tamaños de fuente
@@ -75,24 +75,31 @@ export const SHADOWS = {
   light: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   medium: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
     shadowRadius: 10,
-    elevation: 5,
+    elevation: 6,
   },
   dark: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
     shadowRadius: 15,
-    elevation: 8,
+    elevation: 10,
   },
+  glow: {
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 8,
+  }
 };
 
 // Estilos comunes
@@ -119,5 +126,34 @@ export const COMMON_STYLES = {
     color: COLORS.textMedium,
     marginBottom: SPACING.md,
     textAlign: 'center',
+  },
+  buttonPrimary: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.glow,
+  },
+  buttonSecondary: {
+    backgroundColor: 'transparent',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  buttonText: {
+    color: COLORS.background,
+    fontWeight: '700',
+    fontSize: FONT_SIZE.md,
+  },
+  buttonTextSecondary: {
+    color: COLORS.primary,
+    fontWeight: '600',
+    fontSize: FONT_SIZE.md,
   },
 }; 

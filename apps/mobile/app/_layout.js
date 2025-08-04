@@ -4,6 +4,8 @@ import { Stack, useRouter } from 'expo-router';
 import { useAuthStore } from '../src/store/authStore';
 import { authService } from '../src/services/apiService';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ActiveSessionProvider } from '../src/contexts/ActiveSessionContext';
+import { COLORS, SHADOWS } from '../src/constants/theme';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function RootLayout() {
   // Redirigir basado en el estado de autenticación
   useEffect(() => {
     if (isLoading) return;
-    
+
     if (isAuthenticated) {
       router.replace('/(app)');
     } else {
@@ -41,7 +43,7 @@ export default function RootLayout() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Cargando aplicación...</Text>
       </View>
     );
@@ -49,35 +51,38 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{
-        headerStyle: {
-          backgroundColor: '#007AFF',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        headerTitleAlign: 'center',
-      }}>
-        <Stack.Screen 
-          name="index" 
-          redirect={isAuthenticated}
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="register" 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen 
-          name="forgot-password" 
-          options={{ title: 'Recuperar Contraseña' }} 
-        />
-        <Stack.Screen 
-          name="(app)" 
-          redirect={!isAuthenticated}
-          options={{ headerShown: false }} 
-        />
-      </Stack>
+      <ActiveSessionProvider>
+        <Stack screenOptions={{
+          headerStyle: {
+            backgroundColor: COLORS.primary,
+            ...SHADOWS.medium,
+          },
+          headerTintColor: COLORS.background,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+          headerTitleAlign: 'center',
+        }}>
+          <Stack.Screen
+            name="index"
+            redirect={isAuthenticated}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="register"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="forgot-password"
+            options={{ title: 'Recuperar Contraseña' }}
+          />
+          <Stack.Screen
+            name="(app)"
+            redirect={!isAuthenticated}
+            options={{ headerShown: false }}
+          />
+        </Stack>
+      </ActiveSessionProvider>
     </GestureHandlerRootView>
   );
 }
@@ -87,11 +92,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMedium,
   },
 }); 

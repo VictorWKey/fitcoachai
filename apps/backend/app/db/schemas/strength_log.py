@@ -16,10 +16,13 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 from pydantic import Field
-from db.models.strength_log import WeightUnit, ExerciseType
+from db.models.strength_log import WeightUnit, SetType
 from utils.model_utils import coerce_null_string
 from typing import Annotated
 from pydantic import BeforeValidator
+from db.models.standard_exercises import MuscleGroupEnum, EquipmentEnum
+
+
 
 class StrengthLogAgentBase(BaseModel):
     """
@@ -30,55 +33,39 @@ class StrengthLogAgentBase(BaseModel):
     
     Contains common fields for all strength training logs that the agent can infer.
     """
-    exercise_name: Annotated[
-        Optional[str],
-        BeforeValidator(coerce_null_string),
-        Field(
-            default=None,
-            description="Nombre del ejercicio realizado. Ejemplo: 'press de banca', 'remo con barra'."
-        )
-    ]
     set_number: Annotated[
-        Optional[int],
+        int,
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
             description="Número de la serie dentro del ejercicio. Por ejemplo, 1 si es la primera serie, 2 si es la segunda, etc. Si el nombre del ejercicio cambia, el número de la serie se reinicia a 1."
         )
     ]
-    reps: Annotated[
-        Optional[int],
+    repetitions_done: Annotated[
+        int,
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
             description="Cantidad de repeticiones realizadas en esta serie."
         )
     ]
-    weight: Annotated[
-        Optional[float],
+    used_weight: Annotated[
+        float,
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
             description="Peso utilizado por el usuario en esta serie. No inclyas la unidad de medida. Solo el número."
         )
     ]
-    weight_unit: Annotated[
-        Optional[WeightUnit],
+    used_weight_unit: Annotated[
+        WeightUnit,
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
             description="Unidad del peso registrado. Por ejemplo: kg o lbs"
         )
     ]
-    one_rm_percentage: Annotated[
-        Optional[float],
-        BeforeValidator(coerce_null_string),
-        Field(
-            default=None,
-            description="Porcentaje del 1RM (una repetición máxima) utilizado. Rango típico: 30-120%."
-        )
-    ]
-    rir: Annotated[
+    perceived_rir: Annotated[
         Optional[int],
         BeforeValidator(coerce_null_string),
         Field(
@@ -86,7 +73,7 @@ class StrengthLogAgentBase(BaseModel):
             description="Repeticiones en reserva (RIR) reportadas por el usuario. Puede ir de 0 a 10."
         )
     ]
-    rpe: Annotated[
+    perceived_rpe: Annotated[
         Optional[float],
         BeforeValidator(coerce_null_string),
         Field(
@@ -119,19 +106,43 @@ class StrengthLogAgentBase(BaseModel):
         )
     ]
 
+class StrengthLogAgent(StrengthLogAgentBase):
+    """
+    Schema for strength training logs used by the LLM agent.
+    
+    This schema is specifically designed for agent tools and does NOT include
+    the exercise_type field, which should be set programmatically by the application.
+    """
+    main_muscle_group: Annotated[
+        MuscleGroupEnum,
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Grupo muscular principal del ejercicio inferido en base al campo exercise_name. Opciones disponibles escritas estrictamente asi: 'pectoral', 'espalda', 'biceps', 'triceps', 'abdomen', 'gluteo', 'cuadriceps', 'aductor', 'isquiotibiales', 'pantorrilla', 'trapecio', 'deltoides_posterior', 'deltoides_medio', 'deltoides_frontal', 'antebrazo', 'core', 'oblicuos', 'zona_lumbar', 'cuello'."
+        )
+    ]
+    equipment: Annotated[
+        EquipmentEnum,
+        BeforeValidator(coerce_null_string),
+        Field(
+            default=None,
+            description="Equipo utilizado para el ejercicio inferido en base al campo exercise_name. Opciones disponibles: 'barra', 'mancuernas', 'maquina', 'poleas', 'peso_corporal', 'discos'."
+        )
+    ]
+
 class StrengthLogBase(StrengthLogAgentBase):
     """
     Complete base schema for strength training logs.
     
-    Extends the agent base schema with the exercise_type field that is set programmatically.
+    Extends the agent base schema with the set_type field that is set programmatically.
     This schema is used for CRUD operations and database interactions.
     """
-    exercise_type: Annotated[
-        Optional[ExerciseType],
+    set_type: Annotated[
+        Optional[SetType],
         BeforeValidator(coerce_null_string),
         Field(
             default=None,
-            description="Tipo de ejercicio: strength (fuerza), hypertrophy (hipertrofia), o technique (técnica). Este campo se establece programáticamente y no debe ser inferido por el agente."
+            description="Objetivo de la serie: strength (fuerza), hypertrophy (hipertrofia), o technique (técnica). Este campo se establece programáticamente y no debe ser inferido por el agente."
         )
     ]
 
@@ -140,10 +151,12 @@ class StrengthLogCreate(StrengthLogBase):
     """
     Schema for creating a new strength training log entry.
     
-    Extends the complete base schema with required user and workout identification.
+    Extends the complete base schema with required user and training session identification.
     """
     user_id: int
-    workout_id: int
+    training_session_id: int
+    standard_exercise_id: int
+    programmed_exercise_id: Optional[int] = None
 
 # Actualizar
 class StrengthLogUpdate(BaseModel):
@@ -152,15 +165,13 @@ class StrengthLogUpdate(BaseModel):
     
     All fields are optional to allow partial updates.
     """
-    exercise_name: Optional[str] = None
-    exercise_type: Optional[ExerciseType] = None
     set_number: Optional[int] = None
-    reps: Optional[int] = None
-    weight: Optional[float] = None
-    weight_unit: Optional[WeightUnit] = None
-    one_rm_percentage: Optional[float] = None
-    rir: Optional[int] = None
-    rpe: Optional[float] = None
+    set_type: Optional[SetType] = None
+    repetitions_done: Optional[int] = None
+    used_weight: Optional[float] = None
+    used_weight_unit: Optional[WeightUnit] = None
+    perceived_rir: Optional[int] = None
+    perceived_rpe: Optional[float] = None
     tempo: Optional[str] = None
     rest_time_seconds: Optional[int] = None
     notes: Optional[str] = None
@@ -173,7 +184,10 @@ class StrengthLog(StrengthLogBase):
     Includes database-generated fields like ID and timestamps.
     """
     id: int
-    workout_id: int
+    user_id: int
+    training_session_id: int
+    standard_exercise_id: int
+    programmed_exercise_id: Optional[int] = None
     exercise_date: datetime
     updated_at: datetime
 

@@ -8,8 +8,8 @@ to provide context for the AI agent during conversations.
 from db.session import db_session
 from db.models.strength_log import StrengthLog
 from db.models.cardio_log import CardioLog
-from db.models.workout import Workout
-from db.crud.workout import get_active_workout
+from db.models.training_session import TrainingSession
+from db.crud.training_session import get_active_session_for_user
 from sqlalchemy import select, or_
 
 import json
@@ -66,37 +66,37 @@ def cardio_to_dict(log):
 
 async def get_history_context(user_id: int, n_logs: int = 10) -> str:
     """
-    Retrieves exercise logs from the user's current active workout and formats them as a JSON string.
-    Returns empty string if no active workout exists or if the active workout has no exercises.
+    Retrieves exercise logs from the user's current active training session and formats them as a JSON string.
+    Returns empty string if no active session exists or if the active session has no exercises.
 
     Args:
         user_id: ID of the user whose logs are being fetched.
         n_logs: Maximum number of logs to retrieve. Defaults to 10.
 
     Returns:
-        A pretty-formatted JSON string containing the exercise logs from the active workout,
-        or empty string if no active workout or no exercises.
+        A pretty-formatted JSON string containing the exercise logs from the active session,
+        or empty string if no active session or no exercises.
     """
     async with db_session() as db:
-        # Get the user's active workout
-        active_workout = await get_active_workout(db, user_id)
+        # Get the user's active training session
+        active_session = await get_active_session_for_user(db, user_id)
         
-        if not active_workout:
+        if not active_session:
             return ""
         
-        # Get strength logs from the active workout
+        # Get strength logs from the active session
         strength_result = await db.execute(
             select(StrengthLog)
-            .where(StrengthLog.workout_id == active_workout.id)
+            .where(StrengthLog.training_session_id == active_session.id)
             .order_by(StrengthLog.exercise_date.desc())
             .limit(n_logs)
         )
         strength_logs = strength_result.scalars().all()
         
-        # Get cardio logs from the active workout
+        # Get cardio logs from the active session
         cardio_result = await db.execute(
             select(CardioLog)
-            .where(CardioLog.workout_id == active_workout.id)
+            .where(CardioLog.training_session_id == active_session.id)
             .order_by(CardioLog.exercise_date.desc())
             .limit(n_logs)
         )
@@ -109,7 +109,7 @@ async def get_history_context(user_id: int, n_logs: int = 10) -> str:
         # Combine and sort by date (most recent first)
         all_logs = strength_dicts + cardio_dicts
         
-        # If no exercises in the active workout, return empty string
+        # If no exercises in the active session, return empty string
         if not all_logs:
             return ""
         

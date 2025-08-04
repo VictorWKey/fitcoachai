@@ -63,8 +63,8 @@ app/
 The main component is an LLM agent built with LangGraph that:
 
 1. Receives user queries about fitness.
-2. Uses tools like `log_exercise` to record exercises.
-3. Provides personalized workout responses.
+2. Uses tools like `log_strength_exercise` and `log_cardio_exercise` to record exercises.
+3. Provides personalized training session responses.
 
 ### Authentication and Security
 
@@ -78,7 +78,7 @@ The main component is an LLM agent built with LangGraph that:
 We use PostgreSQL with:
 
 * SQLAlchemy as the ORM.
-* Models to represent users, workouts, and exercise logs.
+* Models to represent users, training sessions, and exercise logs.
 * Migrations with Alembic to manage schema changes.
 
 ## Design Patterns

@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChat } from '../hooks/useChat';
 import { ChatBubble } from '../components';
-import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS, COMMON_STYLES } from '../constants/theme';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -34,6 +34,16 @@ const ChatScreen = () => {
     <ChatBubble message={item.content} isUser={item.role === 'user'} />
   );
 
+  // Función mejorada para generar claves únicas
+  const keyExtractor = (item, index) => {
+    // Si el item tiene un ID, usarlo
+    if (item.id) {
+      return item.id.toString();
+    }
+    // Si no tiene ID, usar una combinación de índice y timestamp
+    return `msg_${index}_${Date.now()}`;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -47,14 +57,14 @@ const ChatScreen = () => {
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(item, idx) => (item.id ? item.id.toString() : idx.toString())}
+          keyExtractor={keyExtractor}
           renderItem={renderMessage}
           contentContainerStyle={styles.listContent}
-          inverted={false} // Removed inverted so that messages appear from the bottom
-          onContentSizeChange={() => flatListRef.current.scrollToEnd({ animated: true })} // Auto-scroll to bottom
+          inverted={false}
+          onContentSizeChange={() => flatListRef.current.scrollToEnd({ animated: true })}
         />
 
-        {isLoading && <ActivityIndicator size="small" style={styles.loading} />}
+        {isLoading && <ActivityIndicator size="small" color={COLORS.primary} style={styles.loading} />}
 
         <View style={[styles.inputContainer, { paddingBottom: insets.bottom || 10 }]}>
           <TextInput
@@ -91,11 +101,12 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: BORDER_RADIUS.lg,
     borderBottomRightRadius: BORDER_RADIUS.lg,
     alignItems: 'center',
+    ...SHADOWS.medium,
   },
   headerText: {
     fontSize: FONT_SIZE.xl,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.background,
   },
   listContent: {
     padding: SPACING.md,
@@ -107,7 +118,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderColor: '#eee',
+    borderColor: COLORS.card,
     padding: SPACING.md,
     backgroundColor: COLORS.background,
   },
@@ -120,23 +131,19 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.textDark,
     marginRight: SPACING.sm,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 1,
+    ...SHADOWS.light,
+    borderWidth: 1,
+    borderColor: COLORS.card,
   },
   sendButton: {
-    backgroundColor: COLORS.primary,
+    ...COMMON_STYLES.buttonPrimary,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   sendText: {
-    color: '#fff',
+    color: COLORS.background,
     fontWeight: '700',
-    fontSize: FONT_SIZE.md + 1,
+    fontSize: FONT_SIZE.md,
   },
 });
 

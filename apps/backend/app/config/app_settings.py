@@ -18,7 +18,7 @@ class AppSettings:
     
     # Hosts and CORS configuration
     ALLOWED_HOSTS: List[str] = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost,http://localhost:3000").split(",")
+    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:8000,http://10.0.2.2,http://10.0.2.2:8000,http://localhost,http://localhost:3000,http://app:8000,http://172.28.248.198:8000,exp://172.28.248.198:8000,exp://172.28.248.198:19000,exp://172.28.248.198:19001,exp://172.28.248.198:19002,*").split(",")
     
     # LLM model configuration
     OLLAMA_API_BASE_URL: str = os.getenv("OLLAMA_API_BASE_URL", "http://localhost:11434")
@@ -34,7 +34,7 @@ class AppSettings:
     # OpenAI (for ChatOpenAI)
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     
-    # Workout auto-finish backup job settings
+    # Session auto-finish backup job settings
     ENABLE_AUTO_FINISH_JOB: bool = os.getenv("ENABLE_AUTO_FINISH_JOB", "false").lower() == "true"
     AUTO_FINISH_JOB_INTERVAL: int = int(os.getenv("AUTO_FINISH_JOB_INTERVAL", "30"))
 

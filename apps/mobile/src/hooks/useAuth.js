@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { resetAllStores } from '../store/storeRegistry';
+import { Validator, ApiError, TRANSLATIONS } from '../types/api';
 
 /**
  * Hook personalizado para manejar la autenticación
@@ -19,6 +20,22 @@ export const useAuth = () => {
     clearError
   } = useAuthStore();
 
+  // Función para manejar errores con mensajes localizados
+  const handleError = (error) => {
+    let title = TRANSLATIONS.es.common.error;
+    let message = 'Ha ocurrido un error inesperado';
+
+    if (error instanceof ApiError) {
+      message = TRANSLATIONS.es.errors[error.code] || error.message;
+    } else if (typeof error === 'string') {
+      message = error;
+    } else if (error?.message) {
+      message = error.message;
+    }
+
+    Alert.alert(title, message);
+  };
+
   // Limpiar errores cuando el componente se desmonta
   useEffect(() => {
     return () => {
@@ -30,20 +47,37 @@ export const useAuth = () => {
    * Manejar inicio de sesión
    * @param {string} username - Nombre de usuario o email
    * @param {string} password - Contraseña
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>}
    */
   const handleLogin = async (username, password) => {
     if (!username.trim() || !password.trim()) {
-      Alert.alert('Error', 'Por favor, completa todos los campos');
+      Alert.alert(TRANSLATIONS.es.common.error, 'Por favor, completa todos los campos');
+      return false;
+    }
+
+    // Validar formato de email si es un email
+    if (username.includes('@')) {
+      const emailValidation = Validator.validateEmail(username);
+      if (!emailValidation.isValid) {
+        Alert.alert(TRANSLATIONS.es.common.error, emailValidation.message);
+        return false;
+      }
+    }
+
+    // Validar contraseña
+    const passwordValidation = Validator.validatePassword(password);
+    if (!passwordValidation.isValid) {
+      Alert.alert(TRANSLATIONS.es.common.error, passwordValidation.message);
       return false;
     }
 
     try {
-      const result = await login(username, password);
+      await login(username, password);
       console.log('Login exitoso, redirigiendo...');
       return true;
     } catch (error) {
       console.error('Error de login:', error);
+      handleError(error);
       return false;
     }
   };
@@ -51,15 +85,32 @@ export const useAuth = () => {
   /**
    * Manejar registro de usuario
    * @param {Object} userData - Datos del usuario
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>}
    */
   const handleRegister = async (userData) => {
+    // Validaciones antes del registro
+    if (userData.email) {
+      const emailValidation = Validator.validateEmail(userData.email);
+      if (!emailValidation.isValid) {
+        Alert.alert(TRANSLATIONS.es.common.error, emailValidation.message);
+        return false;
+      }
+    }
+
+    if (userData.password) {
+      const passwordValidation = Validator.validatePassword(userData.password);
+      if (!passwordValidation.isValid) {
+        Alert.alert(TRANSLATIONS.es.common.error, passwordValidation.message);
+        return false;
+      }
+    }
+
     try {
       await register(userData);
       return true;
     } catch (error) {
       console.error('Error de registro:', error);
-      // El error ya se maneja en el store
+      handleError(error);
       return false;
     }
   };
@@ -75,7 +126,7 @@ export const useAuth = () => {
       resetAllStores();
     } catch (error) {
       console.error('Error de logout:', error);
-      // El error ya se maneja en el store
+      handleError(error);
     }
   };
 

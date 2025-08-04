@@ -26,21 +26,21 @@ async def get_strength_log(db: AsyncSession, log_id: int) -> Optional[StrengthLo
     result = await db.execute(select(StrengthLog).where(StrengthLog.id == log_id))
     return result.scalar_one_or_none()
 
-async def get_all_workout_logs(db: AsyncSession, workout_id: int) -> List[Union[StrengthLog, CardioLog]]:
+async def get_all_session_logs(db: AsyncSession, session_id: int) -> List[Union[StrengthLog, CardioLog]]:
     """
-    Gets all exercise logs (both strength and cardio) for a workout.
+    Gets all exercise logs (both strength and cardio) for a training session.
     
     Args:
         db: Database session
-        workout_id: ID of the workout
+        session_id: ID of the training session
         
     Returns:
-        List[Union[StrengthLog, CardioLog]]: List of all exercise logs for the workout, ordered by exercise_date
+        List[Union[StrengthLog, CardioLog]]: List of all exercise logs for the session, ordered by exercise_date
     """
     # Get strength logs
     strength_result = await db.execute(
         select(StrengthLog)
-        .where(StrengthLog.workout_id == workout_id)
+        .where(StrengthLog.training_session_id == session_id)
         .order_by(StrengthLog.exercise_date)
     )
     strength_logs = list(strength_result.scalars().all())
@@ -48,7 +48,7 @@ async def get_all_workout_logs(db: AsyncSession, workout_id: int) -> List[Union[
     # Get cardio logs
     cardio_result = await db.execute(
         select(CardioLog)
-        .where(CardioLog.workout_id == workout_id)
+        .where(CardioLog.training_session_id == session_id)
         .order_by(CardioLog.exercise_date)
     )
     cardio_logs = list(cardio_result.scalars().all())
@@ -65,20 +65,49 @@ async def get_all_workout_logs(db: AsyncSession, workout_id: int) -> List[Union[
     
     return all_logs
 
-async def get_workout_logs(db: AsyncSession, workout_id: int) -> List[StrengthLog]:
+async def get_session_strength_logs(db: AsyncSession, session_id: int) -> List[StrengthLog]:
     """
-    Gets all strength logs for a workout.
+    Gets all strength logs for a training session.
     
     Args:
         db: Database session
-        workout_id: ID of the workout
+        session_id: ID of the training session
         
     Returns:
-        List[StrengthLog]: List of strength logs for the workout
+        List[StrengthLog]: List of strength logs for the session
     """
     result = await db.execute(
         select(StrengthLog)
-        .where(StrengthLog.workout_id == workout_id)
+        .where(StrengthLog.training_session_id == session_id)
+        .order_by(StrengthLog.set_number)
+    )
+    return list(result.scalars().all())
+
+async def get_exercise_logs_in_session(
+    db: AsyncSession, 
+    session_id: int, 
+    standard_exercise_id: int, 
+    user_id: int
+) -> List[StrengthLog]:
+    """
+    Gets all strength logs for a specific exercise in a training session.
+    
+    Args:
+        db: Database session
+        session_id: ID of the training session
+        standard_exercise_id: ID of the standard exercise
+        user_id: ID of the user
+        
+    Returns:
+        List[StrengthLog]: List of strength logs for the exercise, ordered by set number
+    """
+    result = await db.execute(
+        select(StrengthLog)
+        .where(
+            StrengthLog.training_session_id == session_id,
+            StrengthLog.standard_exercise_id == standard_exercise_id,
+            StrengthLog.user_id == user_id
+        )
         .order_by(StrengthLog.set_number)
     )
     return list(result.scalars().all())

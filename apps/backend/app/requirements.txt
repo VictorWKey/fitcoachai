@@ -56,6 +56,7 @@ ecdsa==0.19.1
 email-validator==2.2.0
     # via pydantic
 executing==2.2.0
+eralchemy
     # via stack-data
 fastapi==0.115.12
     # via -r requirements.in
@@ -242,6 +243,7 @@ pyasn1==0.4.8
     #   rsa
 pycparser==2.22
     # via cffi
+pygraphviz
 pydantic[email]==2.11.5
     # via
     #   -r requirements.in

@@ -120,6 +120,14 @@ class UserInDB(UserBase):
     """
     id: int
     hashed_password: str
+    is_verified: bool = False
+    verification_token: Optional[str] = None
+    verification_token_expires: Optional[datetime] = None
+    reset_password_token: Optional[str] = None
+    reset_password_expires: Optional[datetime] = None
+    failed_login_attempts: int = 0
+    last_failed_login: Optional[datetime] = None
+    account_locked_until: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -133,6 +141,7 @@ class User(UserBase):
     Safe for API responses, excludes sensitive information like password.
     """
     id: int
+    is_verified: bool = False
     created_at: datetime
     updated_at: Optional[datetime] = None
 

@@ -1,83 +1,128 @@
 """
 Cardio exercise logging tool for the FitCoach AI agent.
 
-This module contains the tool for logging cardiovascular training sessions,
-including HIIT and steady-state cardio activities with simplified performance metrics
-focused on the needs of strength/hypertrophy athletes.
+This module contains the tool for logging cardio exercises.
 """
 
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 from db.schemas.cardio_log import CardioLogCreate
-from db.models.cardio_log import CardioType, DistanceUnit
 from langchain_core.tools import tool
 from db.crud.cardio_log import create_cardio_log
 from db.session import db_session
-from db.schemas.cardio_log import CardioLogAgentBase
-from db.crud.utils import get_or_create_workout_id
+from db.crud.training_session import get_active_session_for_user, NoActiveSessionError
 from langgraph.prebuilt import InjectedState
 from typing import Annotated
 from langchain_core.runnables import RunnableConfig
+from db.models.cardio_log import CardioType, DistanceUnit
 
-@tool("log_cardio_exercise", args_schema=CardioLogAgentBase)
+class LogCardioExerciseInput(BaseModel):
+    """Input schema for logging a cardio exercise."""
+    exercise_name: str = Field(..., description="Name of the cardio exercise (treadmill, bike, elliptical, etc.)")
+    cardio_type: Literal["hiit", "steady_state"] = Field(..., description="Type of cardio training")
+    total_duration_seconds: int = Field(..., description="Total duration of the exercise in seconds")
+    distance: Optional[float] = Field(None, description="Distance covered (if applicable)")
+    distance_unit: Optional[Literal["km", "mi"]] = Field("km", description="Unit of distance measurement")
+    calories_burned: Optional[int] = Field(None, description="Estimated calories burned")
+    avg_heart_rate: Optional[int] = Field(None, description="Average heart rate during exercise")
+    avg_rpe: Optional[float] = Field(None, description="Average Rate of Perceived Exertion (1-10 scale)")
+    intensity_level: Optional[int] = Field(None, description="Machine intensity level (1-20 typically)")
+    incline_level: Optional[int] = Field(None, description="Machine incline level (0-15 typically)")
+    notes: Optional[str] = Field(None, description="Any additional notes about the exercise")
+
+@tool
 async def log_cardio_exercise(
-    config: RunnableConfig,
-    exercise_name: str,
-    cardio_type: CardioType,
-    total_duration_seconds: int,
-    distance: Optional[float] = None,
-    distance_unit: Optional[DistanceUnit] = DistanceUnit.KM,
-    calories_burned: Optional[int] = None,
-    avg_heart_rate: Optional[int] = None,
-    avg_rpe: Optional[float] = None,
-    intensity_level: Optional[int] = None,
-    incline_level: Optional[int] = None,
-    notes: Optional[str] = None
-):
-    """Registra una sesión de entrenamiento cardiovascular del usuario en la base de datos (HIIT o steady-state). El usuario no necesariamente tiene que especificar que se registre una sesión en la base de datos, puede simplemente escribir lo que hizo en el entrenamiento.
+    input: LogCardioExerciseInput,
+    config: Annotated[RunnableConfig, InjectedState]
+) -> str:
     """
-    configurable = config.get("configurable", {})
-    user_id = configurable.get("user_id")
-    llm = configurable.get("llm")
-
-    if not user_id:
-        raise ValueError("user_id is required")
-
-    if not exercise_name:
-        raise ValueError("exercise_name is required") 
-    elif not cardio_type:
-        raise ValueError("cardio_type is required")   
-    elif not total_duration_seconds:
-        raise ValueError("total_duration_seconds is required")
+    Log a cardio exercise to the currently active training session.
     
+    This tool records cardio exercises with detailed metrics.
+    It requires an active training session to be started by the user.
     
-    # Prepare exercise data for workout type inference
-    exercise_data = {
-        'cardio_type': cardio_type,
-        'total_duration_seconds': total_duration_seconds,
-        'avg_heart_rate': avg_heart_rate,
-        'avg_rpe': avg_rpe,
-        'notes': notes
-    }
-    
-    # Get or create workout with exercise data for inference
-    workout_id = await get_or_create_workout_id(user_id, exercise_data, llm)
-    
-    async with db_session() as db:
-        await create_cardio_log(db, CardioLogCreate(
-            user_id=user_id,
-            workout_id=workout_id,
-            exercise_name=exercise_name,
-            cardio_type=cardio_type,
-            total_duration_seconds=total_duration_seconds,
-            distance=distance,
-            distance_unit=distance_unit,
-            calories_burned=calories_burned,
-            avg_heart_rate=avg_heart_rate,
-            avg_rpe=avg_rpe,
-            intensity_level=intensity_level,
-            incline_level=incline_level,
-            notes=notes))
+    Args:
+        input: Cardio exercise details including type, duration, and performance metrics
+        config: Configuration containing user context
         
-    return "Ejercicio de cardio registrado correctamente en la base de datos." 
+    Returns:
+        str: Confirmation message with exercise details and session progress
+        
+    Raises:
+        NoActiveSessionError: If user has no active training session
+    """
+    # Get user from config
+    user_id = config.get('configurable', {}).get('user_id')
+    if not user_id:
+        return "❌ Error: No user found in context"
+    
+    try:
+        async with db_session() as db:
+            # Check for active training session
+            active_session = await get_active_session_for_user(db, user_id)
+            if not active_session:
+                return (
+                    "❌ **No Active Training Session**\\n\\n"
+                    "You need to start a training session before logging exercises. "
+                    "Please select and start a session from your training program first."
+                )
+            
+            # Create cardio log
+            log_data = CardioLogCreate(
+                user_id=user_id,
+                training_session_id=active_session.id,
+                exercise_name=input.exercise_name,
+                cardio_type=CardioType(input.cardio_type),
+                total_duration_seconds=input.total_duration_seconds,
+                distance=input.distance,
+                distance_unit=DistanceUnit(input.distance_unit) if input.distance_unit else None,
+                calories_burned=input.calories_burned,
+                avg_heart_rate=input.avg_heart_rate,
+                avg_rpe=input.avg_rpe,
+                intensity_level=input.intensity_level,
+                incline_level=input.incline_level,
+                notes=input.notes
+            )
+            
+            # Create the log entry
+            cardio_log = await create_cardio_log(db, log_data)
+            
+            # Format duration for display
+            minutes = input.total_duration_seconds // 60
+            seconds = input.total_duration_seconds % 60
+            duration_str = f"{minutes}m {seconds}s" if seconds > 0 else f"{minutes}m"
+            
+            # Format distance if provided
+            distance_str = ""
+            if input.distance:
+                distance_str = f" | {input.distance} {input.distance_unit or 'km'}"
+            
+            # Format additional metrics
+            metrics_str = ""
+            if input.calories_burned:
+                metrics_str += f" | {input.calories_burned} cal"
+            if input.avg_heart_rate:
+                metrics_str += f" | HR: {input.avg_heart_rate} bpm"
+            if input.avg_rpe:
+                metrics_str += f" | RPE: {input.avg_rpe}"
+            
+            return (
+                f"✅ **Cardio Exercise Logged Successfully**\\n\\n"
+                f"**Session:** {active_session.name}\\n"
+                f"**Exercise:** {input.exercise_name}\\n"
+                f"**Type:** {input.cardio_type.title()}\\n"
+                f"**Duration:** {duration_str}{distance_str}{metrics_str}\\n\\n"
+            )
+            
+    except NoActiveSessionError:
+        return (
+            "❌ **No Active Training Session**\\n\\n"
+            "You need to start a training session before logging exercises. "
+            "Please select and start a session from your training program first."
+        )
+    except Exception as e:
+        return f"❌ Error logging cardio exercise: {str(e)}"
+
+# Export for backwards compatibility
+__all__ = ["log_cardio_exercise", "LogCardioExerciseInput"]

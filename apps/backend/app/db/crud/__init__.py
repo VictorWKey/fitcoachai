@@ -11,19 +11,19 @@ from .user import (
     verify_password
 )
 
-from .workout import (
-    create_workout,
-    get_workout,
-    get_user_workouts,
-    update_workout,
-    delete_workout,
+from .training_session import (
+    get_active_session_for_user,
+    start_training_session,
+    finish_training_session,
+    get_user_session_history,
+    get_session_with_exercises
 )
 
 from .strength_log import (
     create_strength_log,
     get_strength_log,
-    get_workout_logs,
-    get_all_workout_logs,
+    get_session_strength_logs,
+    get_all_session_logs,
     update_strength_log,
     delete_strength_log,
 )
@@ -35,6 +35,12 @@ from .cardio_log import (
     delete_cardio_log,
 )
 
-from .utils import (
-    get_or_create_workout_id,
+from .standard_exercises import (
+    create_standard_exercise,
+    get_standard_exercise,
+    get_standard_exercise_by_name,
+    get_standard_exercises,
+    update_standard_exercise,
+    delete_standard_exercise,
+    get_standard_exercises_by_equipment_and_muscle_group,
 )

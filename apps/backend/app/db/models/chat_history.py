@@ -17,4 +17,4 @@ class ChatHistory(Base):
     is_user_message = Column(Boolean, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User")
+    user = relationship("User", back_populates="chat_history")

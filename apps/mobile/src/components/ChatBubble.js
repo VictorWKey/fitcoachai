@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { COLORS, BORDER_RADIUS, FONT_SIZE, SHADOWS } from '../constants/theme';
 
 const ChatBubble = ({ message, isUser }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -41,29 +42,31 @@ const ChatBubble = ({ message, isUser }) => {
 const styles = StyleSheet.create({
   chatBubble: {
     maxWidth: '80%',
-    borderRadius: 18,
+    borderRadius: BORDER_RADIUS.lg,
     padding: 12,
     marginVertical: 5,
+    ...SHADOWS.light,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.userBubble,
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
   aiBubble: {
-    backgroundColor: '#e6e6e6',
+    backgroundColor: COLORS.aiBubble,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
   },
   chatText: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.md,
     lineHeight: 22,
   },
   userChatText: {
-    color: '#fff',
+    color: COLORS.userText,
+    fontWeight: '500',
   },
   aiChatText: {
-    color: '#333',
+    color: COLORS.aiText,
   },
 });
 

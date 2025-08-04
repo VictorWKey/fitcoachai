@@ -11,6 +11,7 @@ Used to store and retrieve conversation history between users and the AI coach.
 
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class ChatHistoryBase(BaseModel):
     """
@@ -39,6 +40,7 @@ class ChatHistory(ChatHistoryBase):
     Includes database-generated ID field.
     """
     id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True

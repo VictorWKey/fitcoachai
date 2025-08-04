@@ -62,6 +62,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       WEBSITE_URL: ${WEBSITE_URL}
       REDIS_URL: ${REDIS_URL}
+      ENABLE_AUTO_FINISH_JOB: ${ENABLE_AUTO_FINISH_JOB}
     ports:
       - "8000:8000"
     volumes:

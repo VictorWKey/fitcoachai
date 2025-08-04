@@ -13,7 +13,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS, COMMON_STYLES } from '../constants/theme';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -44,6 +45,7 @@ const ForgotPasswordScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.logoContainer}>
+          <FontAwesome5 name="dumbbell" size={56} color={COLORS.primary} />
           <Text style={styles.logoText}>FitCoach AI</Text>
         </View>
 
@@ -54,6 +56,7 @@ const ForgotPasswordScreen = () => {
           <TextInput
             style={styles.input}
             placeholder="Ingresa tu email"
+            placeholderTextColor={COLORS.textLight}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -67,10 +70,14 @@ const ForgotPasswordScreen = () => {
             activeOpacity={0.9}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={COLORS.background} />
             ) : (
               <Text style={styles.buttonText}>Enviar</Text>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push('/')}>
+            <Text style={styles.link}>Volver a iniciar sesión</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -95,6 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   logoText: {
+    marginTop: SPACING.sm,
     fontSize: FONT_SIZE.xl + 2,
     fontWeight: 'bold',
     color: COLORS.primary,
@@ -125,31 +133,31 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.textDark,
     marginBottom: SPACING.xl,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...SHADOWS.light,
+    borderWidth: 1,
+    borderColor: COLORS.card,
   },
   button: {
-    backgroundColor: COLORS.primary,
+    ...COMMON_STYLES.buttonPrimary,
     paddingVertical: SPACING.lg + 2,
     borderRadius: BORDER_RADIUS.xl,
-    alignItems: 'center',
     marginTop: SPACING.md,
     marginBottom: SPACING.lg,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: COLORS.primaryDark + '99',
+    backgroundColor: COLORS.primaryDark + '80',
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.background,
     fontWeight: '700',
     fontSize: FONT_SIZE.md + 1,
+  },
+  link: {
+    color: COLORS.primary,
+    textAlign: 'center',
+    fontSize: FONT_SIZE.md,
+    marginTop: SPACING.md,
+    fontWeight: '500',
   },
 });
 

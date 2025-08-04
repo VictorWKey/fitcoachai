@@ -1,0 +1,2234 @@
+[
+  {
+    "standard_name": "Press de banca plano",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca inclinado",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca declinado",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca con agarre cerrado",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca con agarre ancho",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca guillotina",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca pausa",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca con cadenas",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca con bandas elásticas",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca spoto",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca larsen",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pullover con barra",
+    "equipment": "barra",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de pecho plano con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de pecho inclinado con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de pecho declinado con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Aperturas planas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Aperturas inclinadas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Aperturas declinadas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press martillo",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pullover con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press palof con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Pullover con discos",
+    "equipment": "discos",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de pecho en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press inclinado en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press declinado en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peck deck (mariposa)",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Contractora de pectoral",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press convergente",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press divergente",
+    "equipment": "maquina",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Cruces de poleas altas",
+    "equipment": "poleas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Cruces de poleas bajas",
+    "equipment": "poleas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Cruces de poleas medias",
+    "equipment": "poleas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press de pecho en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pullover en poleas alta",
+    "equipment": "poleas",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Aperturas en poleas unilateral",
+    "equipment": "poleas",
+    "main_muscle_group": "pectoral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones normales",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones anchas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones inclinadas (pies elevados)",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones declinadas (manos elevadas)",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones arqueras",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones con palmada",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones hindu",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones con discos en la espalda",
+    "equipment": "discos",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto convencional",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto rumano",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto deficit",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto desde bloques",
+    "equipment": "barra",
+    "main_muscle_group": "zona_lumbar",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto pausa",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto con cadenas",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto con bandas elásticas",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto snatch grip",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto trap bar",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto Jefferson",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto a una pierna",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo con barra",
+    "equipment": "barra",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo pendlay",
+    "equipment": "barra",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "High pulls",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo deficit",
+    "equipment": "barra",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo desde bloques",
+    "equipment": "barra",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo con mancuerna a una mano",
+    "equipment": "mancuernas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo con ambas mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pullover",
+    "equipment": "mancuernas",
+    "main_muscle_group": "espalda",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Remo renegado",
+    "equipment": "mancuernas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo en máquina horizontal",
+    "equipment": "maquina",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo en máquina inclinado",
+    "equipment": "maquina",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pulldown frontal",
+    "equipment": "maquina",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pulldown tras nuca",
+    "equipment": "maquina",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo en máquina convergente",
+    "equipment": "maquina",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo en T",
+    "equipment": "maquina",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Jalon al pecho",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Jalon tras nuca",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Jalon con agarre cerrado",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Jalon con agarre ancho",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Jalones unilaterales",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo en poleas baja",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo en poleas alta",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo unilateral en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas pronadas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas supinadas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas neutras",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas arqueras",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas con toalla",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas L-sit",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dominadas lastradas",
+    "equipment": "discos",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo invertido en barra",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo australiano",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "espalda",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press militar",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press tras nuca",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_posterior",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press frontal sentado",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press militar pausa",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press militar con cadenas",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press militar con bandas elásticas",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Elevaciones frontales con barra",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Remo al mentón",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Bradford press",
+    "equipment": "barra",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de hombros con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press Arnold",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Elevaciones laterales",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_lateral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones frontales",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones posteriores",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_posterior",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones frontales con discos",
+    "equipment": "discos",
+    "main_muscle_group": "hombro_frontal",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones laterales con discos",
+    "equipment": "discos",
+    "main_muscle_group": "hombro_lateral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press unilateral",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press alterno",
+    "equipment": "mancuernas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo al mentón con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de hombros en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Elevaciones laterales en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "hombro_lateral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones posteriores en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "hombro_posterior",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Remo al mentón en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Elevaciones laterales en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "hombro_lateral",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones frontales en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones posteriores en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "hombro_posterior",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press de hombros en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Remo al mentón en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones pike",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones verticales (parado de manos)",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones hindu para hombros",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Caminata de cangrejo",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "hombro_frontal",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peck deck inverso",
+    "equipment": "maquina",
+    "main_muscle_group": "hombro_posterior",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Face pulls",
+    "equipment": "poleas",
+    "main_muscle_group": "hombro_posterior",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Encogimientos con barra",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Peso muerto (porción superior)",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Cargadas de potencia",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Encogimientos snatch grip",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Encogimientos con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Encogimientos unilaterales",
+    "equipment": "mancuernas",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Encogimientos en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Encogimientos en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Encogimientos sin peso",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "trapecio",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Remo invertido (activación)",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Curl de bíceps parado",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de bíceps sentado",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl 21s",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de concentración con barra",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl predicador con barra",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl drag",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl con barra EZ",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl con barra recta",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de bíceps con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl martillo",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl alterno",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de concentración",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl predicador con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl Zottman",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl inclinado",
+    "equipment": "mancuernas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl predicador en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de pie en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de bíceps en poleas baja",
+    "equipment": "poleas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de bíceps en poleas alta",
+    "equipment": "poleas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl predicador en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl concentrado en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Remo invertido supinado",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "biceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press francés",
+    "equipment": "barra",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés de pie",
+    "equipment": "barra",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press de banca agarre cerrado",
+    "equipment": "barra",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Press de banca agarre cerrado pausa",
+    "equipment": "barra",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Extensiones tras nuca con barra",
+    "equipment": "barra",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés con barra EZ",
+    "equipment": "barra",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones tras nuca con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Kickbacks",
+    "equipment": "mancuernas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés unilateral",
+    "equipment": "mancuernas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés martillo",
+    "equipment": "mancuernas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de tríceps en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Fondos en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Extensiones de tríceps en poleas alta",
+    "equipment": "poleas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de tríceps en poleas baja",
+    "equipment": "poleas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Press francés en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Kickbacks en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones tras nuca en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "triceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Fondos en paralelas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Fondos entre bancos",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Fondos lastrados",
+    "equipment": "discos",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones diamante",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones con agarre cerrado",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "triceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Curl de muñeca con barra",
+    "equipment": "barra",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de muñeca inverso con barra",
+    "equipment": "barra",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl martillo con barra",
+    "equipment": "barra",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Paseo del granjero con barra",
+    "equipment": "barra",
+    "main_muscle_group": "trapecio",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Curl de muñeca con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de muñeca inverso con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Paseo del granjero con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "antebrazo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Rotaciones de muñeca",
+    "equipment": "mancuernas",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de muñeca en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de muñeca inverso en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de muñeca en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl de muñeca inverso en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "antebrazo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl martillo en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "biceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones en puños",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pectoral",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Colgarse de barra",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "antebrazo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla back squat (high bar)",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla back squat (low bar)",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla frontal",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla búlgara con barra",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla hack",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla pausa",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla desde bloques",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla con cadenas",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla con bandas elásticas",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla pin squat",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla box squat",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla anderson",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla jump",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas con barra",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas caminando con barra",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas frontales con barra",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Step ups con barra",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla goblet",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla goblet con discos",
+    "equipment": "discos",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas frontales con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas laterales",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas inversas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla búlgara con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Step ups con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Extensiones de cuádriceps",
+    "equipment": "maquina",
+    "main_muscle_group": "cuadriceps",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Prensa de piernas",
+    "equipment": "maquina",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla en máquina Smith",
+    "equipment": "maquina",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla hack en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadillas aire",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadillas jump",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadillas pistol",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas frontales",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Step ups",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadillas cosacas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadillas con discos",
+    "equipment": "discos",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas con discos",
+    "equipment": "discos",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto con piernas rígidas",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto deficit rumano",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto rumano desde bloques",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto rumano pausa",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Buenos días",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Buenos días con barra alta",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Buenos días con barra baja",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla sumo (activación)",
+    "equipment": "barra",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto rumano con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto a una pierna con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto rumano con discos",
+    "equipment": "discos",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Buenos días con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Zancadas inversas (activación)",
+    "equipment": "mancuernas",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Curl isquiotibiales acostado",
+    "equipment": "maquina",
+    "main_muscle_group": "isquiotibiales",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl isquiotibiales sentado",
+    "equipment": "maquina",
+    "main_muscle_group": "isquiotibiales",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Curl isquiotibiales de pie",
+    "equipment": "maquina",
+    "main_muscle_group": "isquiotibiales",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Peso muerto en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Curl isquiotibiales en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "isquiotibiales",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Patadas hacia atrás en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Puente de glúteos (activación isquiotibiales)",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "isquiotibiales",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Curl nórdico",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "isquiotibiales",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Deslizamientos de talón",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "isquiotibiales",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Hip thrust con barra",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hip thrust pausa",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hip thrust desde bloques",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Puente de glúteos con barra",
+    "equipment": "barra",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto sumo",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla sumo",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla sumo con barra alta",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla sumo con barra baja",
+    "equipment": "barra",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hip thrust con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Puente de glúteos con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hip thrust con discos",
+    "equipment": "discos",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadilla sumo con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuadriceps",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Patadas de glúteo en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de cadera en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Abducción de cadera en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Prensa de piernas (activación)",
+    "equipment": "maquina",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Patadas de glúteo en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de cadera en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Abducción de cadera en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Patadas laterales en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Puentes de glúteos",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hip thrust",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Caminata lateral",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "gluteo",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Puentes de glúteos con discos",
+    "equipment": "discos",
+    "main_muscle_group": "gluteo",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Aducción con mancuerna acostado",
+    "equipment": "mancuernas",
+    "main_muscle_group": "aductor",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Aducción de cadera en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "aductor",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Aducción de cadera en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "aductor",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Cruces de piernas en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "aductor",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Aducción isométrica",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "aductor",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla de pie con barra",
+    "equipment": "barra",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla sentado con barra",
+    "equipment": "barra",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla a una pierna con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla sentado",
+    "equipment": "mancuernas",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla en máquina de pie",
+    "equipment": "maquina",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla en máquina sentado",
+    "equipment": "maquina",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla en prensa",
+    "equipment": "maquina",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla en hack squat",
+    "equipment": "maquina",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla unilateral en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de pantorrilla a una pierna",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Saltos de pantorrilla",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Caminata en puntas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "pantorrilla",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Rollouts con barra",
+    "equipment": "barra",
+    "main_muscle_group": "abdomen",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Crunches con barra",
+    "equipment": "barra",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Sit-ups con barra",
+    "equipment": "barra",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Sit-ups con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches con discos",
+    "equipment": "discos",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de piernas en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches en poleas alta",
+    "equipment": "poleas",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches en poleas baja",
+    "equipment": "poleas",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de rodillas en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Sit-ups",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Elevaciones de piernas",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Bicicleta",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "V-ups",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Crunches invertidos",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "abdomen",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones laterales con barra",
+    "equipment": "barra",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Giros rusos con barra",
+    "equipment": "barra",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones laterales con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Giros rusos con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Leñador con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Giros rusos con discos",
+    "equipment": "discos",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Crunches laterales con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones laterales en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Giros en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Flexiones laterales en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Giros en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Leñador en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Crunches laterales en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Plancha lateral",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Crunches laterales",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "oblicuos",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Giros rusos",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Escaladores laterales",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Plancha lateral con elevación",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "oblicuos",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Cargadas frontales (estabilización)",
+    "equipment": "barra",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Sentadillas frontales (estabilización)",
+    "equipment": "barra",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Plancha con arrastre de mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dead bugs con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "core",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Plancha con discos",
+    "equipment": "discos",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Rotaciones en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Pallof press",
+    "equipment": "poleas",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Rotaciones en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Anti-extensión en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "core",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Plancha",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Dead bugs",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Bird dogs",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Mountain climbers",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hollow body holds",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Bear crawls",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Bear crawls con discos",
+    "equipment": "discos",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Plancha con movimiento",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "core",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Buenos días sentado",
+    "equipment": "barra",
+    "main_muscle_group": "zona_lumbar",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Peso muerto",
+    "equipment": "barra",
+    "main_muscle_group": "zona_lumbar",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Hiperextensiones con barra",
+    "equipment": "barra",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Hiperextensiones con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Hiperextensiones en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de espalda en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de espalda en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Hiperextensiones",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de espalda",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Superman",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Superman con discos",
+    "equipment": "discos",
+    "main_muscle_group": "zona_lumbar",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Encogimientos con barra (activación)",
+    "equipment": "barra",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones de cuello con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de cuello con mancuerna",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones laterales de cuello con mancuernas",
+    "equipment": "mancuernas",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones de cuello en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de cuello en máquina",
+    "equipment": "maquina",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones de cuello en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de cuello en poleas",
+    "equipment": "poleas",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones de cuello",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Extensiones de cuello",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Flexiones laterales de cuello",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuello",
+    "type": "aislado"
+  },
+  {
+    "standard_name": "Rotaciones de cuello",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuello",
+    "type": "compuesto"
+  },
+  {
+    "standard_name": "Puente de luchador",
+    "equipment": "peso_corporal",
+    "main_muscle_group": "cuello",
+    "type": "compuesto"
+  }
+]

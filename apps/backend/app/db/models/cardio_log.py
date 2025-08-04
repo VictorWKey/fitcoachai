@@ -34,13 +34,13 @@ class CardioType(enum.Enum):
 
 class CardioLog(Base):
     """
-    Model for recording cardio training sessions as complementary work for strength/hypertrophy athletes.
+    Model for recording cardio training sessions as complementary work during training sessions.
     """
     __tablename__ = "cardio_logs"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    workout_id = Column(Integer, ForeignKey("workouts.id"), nullable=False)
+    training_session_id = Column(Integer, ForeignKey("training_sessions.id"), nullable=False)
     exercise_name = Column(String, nullable=False)  # Treadmill, bike, elliptical, rowing, etc.
     cardio_type = Column(Enum(CardioType), nullable=False)
     total_duration_seconds = Column(Integer, nullable=False)
@@ -58,9 +58,13 @@ class CardioLog(Base):
     exercise_date = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    workout = relationship("Workout", back_populates="cardio_logs")
+    training_session = relationship("TrainingSession", back_populates="cardio_logs")
     user = relationship("User", back_populates="cardio_logs")
     
     __table_args__ = (
         Index("idx_cardio_user_date", "user_id", "exercise_date"),
-    ) 
+    )
+    
+    def __repr__(self):
+        """String representation of the cardio log."""
+        return f"<CardioLog {self.id}: {self.exercise_name}>"

@@ -114,6 +114,14 @@ class CardioLogAgentBase(BaseModel):
         )
     ]
 
+class CardioLogAgent(CardioLogAgentBase):
+    """
+    Schema for cardio training logs used by the LLM agent.
+    
+    This schema is specifically designed for agent tools and does NOT include
+    the exercise_type field, which should be set programmatically by the application.
+    """
+
 class CardioLogBase(CardioLogAgentBase):
     """
     Complete base schema for cardio training logs.
@@ -133,10 +141,10 @@ class CardioLogCreate(CardioLogBase):
     """
     Schema for creating a new cardiovascular exercise log entry.
     
-    Extends the complete base schema with required user and workout identification.
+    Extends the complete base schema with required user and training session identification.
     """
     user_id: int
-    workout_id: int
+    training_session_id: int
 
 # Actualizar
 class CardioLogUpdate(BaseModel):
@@ -165,7 +173,8 @@ class CardioLog(CardioLogBase):
     Includes database-generated fields like ID and timestamps.
     """
     id: int
-    workout_id: int
+    user_id: int
+    training_session_id: int
     exercise_date: datetime
     updated_at: datetime
 

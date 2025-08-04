@@ -8,14 +8,13 @@ from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langchain_openai import ChatOpenAI
 from agent.agent import get_agent
-from agent.tools.log_strength_exercise import log_strength_exercise
-from agent.tools.log_cardio_exercise import log_cardio_exercise
-from agent.tools.finish_workout import finish_workout
+from agent import TRAINING_TOOLS
 from db import init_db
 from api.routes import api_router
 from middleware import RateLimitMiddleware, SecurityHeadersMiddleware, setup_csrf_protection
 from config.app_settings import settings
 from config.db_settings import db_settings
+from core.services.session_monitor import start_session_monitor, stop_session_monitor
 from utils.model_utils import wait_for_server_and_load_model
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -30,6 +29,8 @@ async def lifespan(app: FastAPI):
     """
     # Uncomment when using Ollama locally
     # await wait_for_server_and_load_model()
+    
+    await start_session_monitor()
     
     await init_db()
     
@@ -48,12 +49,12 @@ async def lifespan(app: FastAPI):
             await checkpointer.setup()
 
             llm = ChatOpenAI(
-                model=settings.MODEL_NAME,
+                model="gpt-4o-mini",
                 temperature=0,
                 max_completion_tokens=10000
-            ).bind_tools([log_strength_exercise, log_cardio_exercise, finish_workout])
+            ).bind_tools(TRAINING_TOOLS)
 
-            agent = get_agent(llm=llm, checkpointer=checkpointer, tools=[log_strength_exercise, log_cardio_exercise, finish_workout])
+            agent = get_agent(llm=llm, checkpointer=checkpointer, tools=TRAINING_TOOLS)
             
             app.state.pool = pool
             app.state.llm = llm
@@ -64,7 +65,9 @@ async def lifespan(app: FastAPI):
             
             if hasattr(app.state, "scheduler"):
                 app.state.scheduler.shutdown()
-
+                
+            await stop_session_monitor()
+    
 
 
 

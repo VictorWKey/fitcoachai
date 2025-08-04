@@ -12,16 +12,18 @@ import {
   SafeAreaView,
   Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
-import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS } from '../constants/theme';
+import { COLORS, FONT_SIZE, SPACING, BORDER_RADIUS, SHADOWS, COMMON_STYLES } from '../constants/theme';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 const screenWidth = Dimensions.get('window').width;
 
 const RegisterScreen = () => {
   const router = useRouter();
-  const { handleLogin, isLoading, error } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { handleRegister, isLoading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +36,7 @@ const RegisterScreen = () => {
     }
     setFormError('');
     try {
-      await handleLogin(email, password);
+      await handleRegister({ email, username, password });
       Alert.alert('Registro completo', 'Ahora inicia sesión');
       router.replace('/');
     } catch (e) {
@@ -99,7 +101,7 @@ const RegisterScreen = () => {
             activeOpacity={0.9}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={COLORS.background} />
             ) : (
               <Text style={styles.buttonText}>Registrarse</Text>
             )}
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '90%',
-    maxWidth: 400, // Mejor legibilidad en pantallas grandes
+    maxWidth: 400,
     alignSelf: 'center',
   },
   label: {
@@ -168,29 +170,22 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: COLORS.textDark,
     marginBottom: SPACING.xl,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...SHADOWS.light,
+    borderWidth: 1,
+    borderColor: COLORS.card,
   },
   button: {
-    backgroundColor: COLORS.primary,
+    ...COMMON_STYLES.buttonPrimary,
     paddingVertical: SPACING.lg + 2,
     borderRadius: BORDER_RADIUS.xl,
-    alignItems: 'center',
     marginTop: SPACING.md,
     marginBottom: SPACING.lg,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: COLORS.primaryDark + '99',
+    backgroundColor: COLORS.primaryDark + '80',
   },
   buttonText: {
-    color: '#fff',
+    color: COLORS.background,
     fontWeight: '700',
     fontSize: FONT_SIZE.md + 1,
   },

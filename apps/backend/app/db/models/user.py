@@ -31,9 +31,11 @@ class User(Base):
         updated_at: Date of the last update to the user
         
             Relationships:
-        workouts: Relationship with user's workouts
         exercise_logs: Relationship with user's strength exercise logs
         cardio_logs: Relationship with user's cardio exercise logs
+        training_programs: Relationship with user's training programs
+        active_training_sessions: Relationship with training sessions currently being executed by the user
+        chat_history: Relationship with user's chat history
     """
     __tablename__ = "users"
 
@@ -55,9 +57,11 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    workouts = relationship("Workout", back_populates="user", cascade="all, delete-orphan")
     exercise_logs = relationship("StrengthLog", back_populates="user", cascade="all, delete-orphan")
     cardio_logs = relationship("CardioLog", back_populates="user", cascade="all, delete-orphan")
+    training_programs = relationship("TrainingProgram", back_populates="user", cascade="all, delete-orphan")
+    active_training_sessions = relationship("TrainingSession", back_populates="user")
+    chat_history = relationship("ChatHistory", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         """String representation of the user."""
