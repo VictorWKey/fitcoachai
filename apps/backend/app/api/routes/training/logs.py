@@ -17,7 +17,7 @@ from db.models.strength_log import StrengthLog
 from db.models.cardio_log import CardioLog
 from db.schemas.strength_log import StrengthLogCreate, StrengthLogUpdate, StrengthLog as StrengthLogResponse
 from db.schemas.cardio_log import CardioLogCreate, CardioLogUpdate, CardioLog as CardioLogResponse
-from db.crud.training_session import get_session_with_exercises, update_session_activity
+
 from db.crud.strength_log import (
     get_strength_log, create_strength_log, update_strength_log, delete_strength_log,
     get_session_strength_logs, get_all_session_logs, get_exercise_logs_in_session
@@ -114,9 +114,6 @@ async def get_all_session_logs_endpoint(
         result = await db.execute(stmt)
         session_status = result.scalar_one()
         
-        if session_status == SessionStatus.ACTIVE:
-            await update_session_activity(db, session_id, cast(int, current_user.id))
-        
         # Get all logs for the session
         logs = await get_all_session_logs(db, session_id)
         
@@ -146,8 +143,7 @@ async def get_session_strength_logs_endpoint(
         result = await db.execute(stmt)
         session_status = result.scalar_one()
         
-        if session_status == SessionStatus.ACTIVE:
-            await update_session_activity(db, session_id, cast(int, current_user.id))
+
         
         # Get strength logs for the session
         logs = await get_session_strength_logs(db, session_id)
@@ -178,8 +174,7 @@ async def get_session_cardio_logs_endpoint(
         result = await db.execute(stmt)
         session_status = result.scalar_one()
         
-        if session_status == SessionStatus.ACTIVE:
-            await update_session_activity(db, session_id, cast(int, current_user.id))
+
         
         # Get cardio logs for the session
         logs = await get_session_cardio_logs(db, session_id)
@@ -211,8 +206,7 @@ async def get_exercise_logs_in_session_endpoint(
         result = await db.execute(stmt)
         session_status = result.scalar_one()
         
-        if session_status == SessionStatus.ACTIVE:
-            await update_session_activity(db, session_id, cast(int, current_user.id))
+
         
         # Get exercise logs for the session
         logs = await get_exercise_logs_in_session(db, session_id, exercise_id, cast(int, current_user.id))
@@ -249,9 +243,6 @@ async def create_strength_log_endpoint(
                 status_code=400,
                 detail="Cannot add logs to an inactive session. Please start or resume the session first."
             )
-        
-        # Actualizar la última actividad de la sesión
-        await update_session_activity(db, session_id, cast(int, current_user.id))
         
         # Asegurarnos de que log_data tenga el session_id y user_id correctos
         log_data_dict = log_data.dict()
@@ -296,9 +287,7 @@ async def create_cardio_log_endpoint(
                 status_code=400,
                 detail="Cannot add logs to an inactive session. Please start or resume the session first."
             )
-        
-        # Actualizar la última actividad de la sesión
-        await update_session_activity(db, session_id, cast(int, current_user.id))
+
         
         # Asegurarnos de que log_data tenga el session_id y user_id correctos
         log_data_dict = log_data.dict()
@@ -357,8 +346,6 @@ async def update_strength_log_endpoint(
         if log_session_id != session_id:
             raise HTTPException(status_code=400, detail="This log does not belong to the specified session")
         
-        # Actualizar última actividad de la sesión
-        await update_session_activity(db, session_id, cast(int, current_user.id))
         
         # Actualizar el log
         updated_log = await update_strength_log(db, log_id, log_data)
@@ -409,9 +396,6 @@ async def update_cardio_log_endpoint(
         if log_session_id != session_id:
             raise HTTPException(status_code=400, detail="This log does not belong to the specified session")
         
-        # Actualizar última actividad de la sesión
-        await update_session_activity(db, session_id, cast(int, current_user.id))
-        
         # Actualizar el log
         updated_log = await update_cardio_log(db, log_id, log_data)
         
@@ -460,9 +444,6 @@ async def delete_strength_log_endpoint(
         if log_session_id != session_id:
             raise HTTPException(status_code=400, detail="This log does not belong to the specified session")
         
-        # Actualizar última actividad de la sesión
-        await update_session_activity(db, session_id, cast(int, current_user.id))
-        
         # Eliminar el log
         await delete_strength_log(db, log_id)
         
@@ -510,9 +491,6 @@ async def delete_cardio_log_endpoint(
         
         if log_session_id != session_id:
             raise HTTPException(status_code=400, detail="This log does not belong to the specified session")
-        
-        # Actualizar última actividad de la sesión
-        await update_session_activity(db, session_id, cast(int, current_user.id))
         
         # Eliminar el log
         await delete_cardio_log(db, log_id)

@@ -194,3 +194,38 @@ class PasswordReset(BaseModel):
             str: The validated new password.
         """
         return validate_password_complexity(v)
+
+
+# Schema for direct user verification (development/testing)
+class DirectVerification(BaseModel):
+    """
+    Schema for direct user verification without SMTP.
+    For development and testing purposes only.
+    """
+    email: EmailStr
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Schema for unverified users list response
+class UnverifiedUserResponse(BaseModel):
+    """
+    Schema for individual unverified user in the list response.
+    """
+    id: int
+    username: str
+    email: EmailStr
+    created_at: datetime
+    verification_token_expires: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UnverifiedUsersListResponse(BaseModel):
+    """
+    Schema for the response of unverified users list.
+    """
+    count: int
+    users: list[UnverifiedUserResponse]
+
+    model_config = ConfigDict(from_attributes=True)

@@ -9,4 +9,3 @@ from .training_session import TrainingSession
 from .exercise_block import ExerciseBlock, BlockType
 from .programmed_exercise import ProgrammedExercise, LoadType
 from .standard_exercises import StandardExercise, StandardExerciseType, MuscleGroupEnum, EquipmentEnum
-from .performance_analysis import PerformanceAnalysis

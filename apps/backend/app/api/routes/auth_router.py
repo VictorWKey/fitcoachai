@@ -472,3 +472,96 @@ async def reset_password(
     await db.commit()
     
     return {"message": "Contraseña actualizada correctamente"}
+
+
+@auth_router.post("/verify-user-direct")
+async def verify_user_direct(
+    verification_data: schemas.user.DirectVerification,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Verifica directamente un usuario por email sin necesidad de token SMTP.
+    Este endpoint es para desarrollo/testing cuando no hay servicio SMTP disponible.
+
+    Args:
+        verification_data: Datos de verificación que incluyen el email.
+        db: Database session.
+
+    Returns:
+        Mensaje indicando el resultado de la verificación.
+    """
+    try:
+        # Buscar usuario por email
+        user = await crud.user.get_user_by_email(db, verification_data.email)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuario no encontrado"
+            )
+        
+        if getattr(user, 'is_verified'):
+            return {"message": f"El usuario {verification_data.email} ya está verificado"}
+        
+        # Verificar directamente
+        setattr(user, 'is_verified', True)
+        setattr(user, 'verification_token', None)
+        setattr(user, 'verification_token_expires', None)
+        setattr(user, 'updated_at', datetime.now(timezone.utc))
+        
+        await db.commit()
+        
+        logger.info(f"Usuario verificado directamente: {verification_data.email}")
+        
+        return {"message": f"Usuario {verification_data.email} verificado exitosamente"}
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error verificando usuario {verification_data.email}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor"
+        )
+
+
+@auth_router.get("/unverified-users", response_model=schemas.user.UnverifiedUsersListResponse)
+async def list_unverified_users(
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Lista todos los usuarios no verificados.
+    Este endpoint es útil para desarrollo/testing.
+
+    Args:
+        db: Database session.
+
+    Returns:
+        Lista de usuarios no verificados con su información básica.
+    """
+    try:
+        stmt = select(User).where(User.is_verified == False)
+        result = await db.execute(stmt)
+        unverified_users = result.scalars().all()
+        
+        users_data = []
+        for user in unverified_users:
+            users_data.append({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "created_at": user.created_at,
+                "verification_token_expires": user.verification_token_expires
+            })
+        
+        return {
+            "count": len(users_data),
+            "users": users_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listando usuarios no verificados: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor"
+        )
