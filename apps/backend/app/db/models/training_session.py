@@ -14,10 +14,12 @@ class SessionStatus(enum.Enum):
     Enumeration of training session statuses.
     
     Attributes:
+        PENDING: Sesión creada pero no iniciada por el usuario
         ACTIVE: Usuario activamente entrenando (timer corriendo en frontend)
         COMPLETED: Terminada exitosamente
         ABANDONED: No finalizada (app cerrada durante entrenamiento)
     """
+    PENDING = "pending"
     ACTIVE = "active"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
@@ -44,6 +46,8 @@ class TrainingSession(Base):
         last_activity: Last time user performed any action in this session
         
         # Computed properties:
+        session_status: Current status (pending, active, completed, abandoned)
+        is_session_pending: Whether this session is pending (not started yet)
         is_session_active: Whether this session is currently active
         is_session_completed: Whether this session is completed
         is_session_finished: Whether this session is finished (completed or abandoned)
@@ -75,7 +79,7 @@ class TrainingSession(Base):
     session_completion_percentage = Column(Integer, default=0, nullable=False)  # 0-100% completion
     
     # Session status management
-    session_status = Column(Enum(SessionStatus), default=SessionStatus.ACTIVE, nullable=False)  # Current status
+    session_status = Column(Enum(SessionStatus), default=SessionStatus.PENDING, nullable=False)  # Current status
     last_activity = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)  # Last user activity
     
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -89,6 +93,11 @@ class TrainingSession(Base):
     user = relationship("User", back_populates="active_training_sessions")
     
     # Computed properties for backward compatibility and convenience
+    @property
+    def is_session_pending(self):
+        """Check if the session is pending (not started yet)."""
+        return self.session_status == SessionStatus.PENDING
+    
     @property
     def is_session_active(self):
         """Check if the session is currently active."""

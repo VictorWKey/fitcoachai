@@ -7,7 +7,7 @@ from .standard_exercises import StandardExerciseCreate, StandardExerciseUpdate, 
 from .performance_analysis import PerformanceAnalysisCreate, PerformanceAnalysisUpdate, PerformanceAnalysis
 from .training_program import (
     TrainingProgramCreate, TrainingProgramUpdate, TrainingProgramResponse, TrainingProgramSimpleResponse,
-    TrainingWeekCreate, TrainingWeekUpdate, TrainingWeekResponse,
+    TrainingWeekCreate, TrainingWeekUpdate, TrainingWeekResponse, TrainingWeekListResponse,
     TrainingSessionCreate, TrainingSessionUpdate, TrainingSessionResponse,
     ExerciseBlockCreate, ExerciseBlockUpdate, ExerciseBlockResponse,
     ProgrammedExerciseCreate, ProgrammedExerciseUpdate, ProgrammedExerciseResponse

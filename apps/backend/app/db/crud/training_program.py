@@ -17,6 +17,7 @@ from ..schemas.training_program import (
     TrainingWeekCreate, TrainingSessionCreate,
     ExerciseBlockCreate, ProgrammedExerciseCreate
 )
+from core.services.exercise_analysis import infer_series_type
 from typing import cast
 
 async def get_training_program(db: AsyncSession, program_id: int) -> Optional[TrainingProgram]:
@@ -227,6 +228,18 @@ async def create_programmed_exercise(
     block_id: int
 ) -> ProgrammedExercise:
     """Create a new programmed exercise."""
+    
+    # Calculate sets_type automatically if not provided
+    calculated_sets_type = exercise_data.sets_type
+    if calculated_sets_type is None:
+        calculated_sets_type = infer_series_type(
+            reps=exercise_data.reps,
+            one_rm_percentage=exercise_data.percentage_1rm,
+            rpe=exercise_data.rpe_target,
+            tempo=exercise_data.tempo,
+            rest_time_seconds=exercise_data.rest_seconds
+        )
+    
     db_exercise = ProgrammedExercise(
         block_id=block_id,
         standard_exercise_id=exercise_data.standard_exercise_id,
@@ -238,8 +251,7 @@ async def create_programmed_exercise(
         percentage_1rm=exercise_data.percentage_1rm,
         weight_range=exercise_data.weight_range,
         rest_seconds=exercise_data.rest_seconds,
-        sets_type=exercise_data.sets_type,
-        custom_parameters=exercise_data.custom_parameters
+        sets_type=calculated_sets_type
     )
     db.add(db_exercise)
     await db.flush()

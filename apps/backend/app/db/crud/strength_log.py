@@ -112,18 +112,78 @@ async def get_exercise_logs_in_session(
     )
     return list(result.scalars().all())
 
-async def create_strength_log(db: AsyncSession, log_data: StrengthLogCreate) -> StrengthLog:
+async def create_strength_log(db: AsyncSession, log_data: StrengthLogCreate, user_id: int, training_session_id: int, programmed_exercise_id: int) -> StrengthLog:
     """
     Creates a new strength log in the database.
     
     Args:
         db: Database session
         log_data: Strength log data to create
+        user_id: ID of the user creating the log
+        training_session_id: ID of the training session
+        programmed_exercise_id: ID of the programmed exercise
         
     Returns:
         StrengthLog: The created strength log
+        
+    Raises:
+        ValueError: If the programmed exercise doesn't exist or doesn't belong to the session
     """
-    db_log = StrengthLog(**log_data.model_dump())
+    # Verificar que el ejercicio programado existe y pertenece a la sesión
+    from db.models.programmed_exercise import ProgrammedExercise
+    from db.models.exercise_block import ExerciseBlock
+    
+    programmed_exercise = await db.execute(
+        select(ProgrammedExercise)
+        .join(ExerciseBlock)
+        .where(
+            ProgrammedExercise.id == programmed_exercise_id,
+            ExerciseBlock.session_id == training_session_id
+        )
+    )
+    programmed_exercise = programmed_exercise.scalar_one_or_none()
+    
+    if not programmed_exercise:
+        raise ValueError(f"Programmed exercise {programmed_exercise_id} not found in session {training_session_id}")
+    
+    # Verificar que no existe ya un log para el mismo ejercicio programado y número de serie
+    existing_log = await db.execute(
+        select(StrengthLog)
+        .where(
+            StrengthLog.programmed_exercise_id == programmed_exercise_id,
+            StrengthLog.set_number == log_data.set_number,
+            StrengthLog.training_session_id == training_session_id
+        )
+    )
+    existing_log = existing_log.scalar_one_or_none()
+    
+    if existing_log:
+        raise ValueError(f"A log for set number {log_data.set_number} of programmed exercise {programmed_exercise_id} already exists. Use PUT to update existing logs.")
+
+    # Verificar que el número de serie sea válido (positivo)
+    if log_data.set_number <= 0:
+        raise ValueError(f"Set number must be positive, got {log_data.set_number}.")
+
+    # Verificar que el número de serie no exceda los sets programados
+    programmed_sets = getattr(programmed_exercise, 'sets', None)
+    if programmed_sets is None:
+        # Si no hay sets programados definidos, permitir un máximo razonable (ej: 10 sets)
+        max_allowed_sets = 10
+        if log_data.set_number > max_allowed_sets:
+            raise ValueError(f"Set number {log_data.set_number} exceeds the maximum allowed sets ({max_allowed_sets}) when no specific sets are programmed.")
+    elif log_data.set_number > programmed_sets:
+        raise ValueError(f"Set number {log_data.set_number} exceeds the programmed sets ({programmed_sets}) for this exercise.")
+
+    # Crear el log con los datos adicionales
+    log_dict = log_data.model_dump()
+    log_dict.update({
+        "user_id": user_id,
+        "training_session_id": training_session_id,
+        "programmed_exercise_id": programmed_exercise_id,
+        "standard_exercise_id": programmed_exercise.standard_exercise_id
+    })
+    
+    db_log = StrengthLog(**log_dict)
     db.add(db_log)
     await db.commit()
     await db.refresh(db_log)

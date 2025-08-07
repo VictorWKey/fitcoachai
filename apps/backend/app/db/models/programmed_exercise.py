@@ -41,7 +41,6 @@ class ProgrammedExercise(Base):
         weight_range: Range of weight (e.g., "225-235")
         rest_seconds: Rest time in seconds
         exercise_type: Type of exercise (strength, hypertrophy, technique)
-        custom_parameters: Additional custom parameters as JSON
         created_at: Creation date of the record
         updated_at: Date of the last update to the record
         

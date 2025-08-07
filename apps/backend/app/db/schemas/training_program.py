@@ -2,8 +2,8 @@
 Pydantic schemas for training programs and related entities.
 """
 
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, field_serializer, model_serializer
+from typing import List, Optional
 from datetime import datetime
 from enum import Enum
 from db.models.training_program import ProgramType
@@ -15,7 +15,6 @@ from db.models.strength_log import SetType
 # Base schemas
 class ProgrammedExerciseBase(BaseModel):
     """Base schema for programmed exercises."""
-    standard_exercise_id: Optional[int] = None
     tempo: Optional[str] = None
     sets: Optional[int] = None
     reps: Optional[int] = None
@@ -27,7 +26,6 @@ class ProgrammedExerciseBase(BaseModel):
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
     sets_type: Optional[SetType] = None
-    custom_parameters: Optional[Dict[str, Any]] = None
 
 class ExerciseBlockBase(BaseModel):
     """Base schema for exercise blocks."""
@@ -91,7 +89,6 @@ class ProgrammedExerciseUpdate(BaseModel):
     weight_range: Optional[str] = None
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
-    custom_parameters: Optional[Dict[str, Any]] = None
 
 class ExerciseBlockUpdate(BaseModel):
     """Schema for updating an exercise block."""
@@ -123,10 +120,9 @@ class ProgrammedExerciseResponse(ProgrammedExerciseBase):
     """Schema for programmed exercise response."""
     id: int
     block_id: int
+    exercise_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    # Campo para el nombre del ejercicio estándar
-    exercise_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -146,6 +142,7 @@ class TrainingSessionResponse(TrainingSessionBase):
     """Schema for training session response."""
     id: int
     week_id: int
+    session_status: str
     exercise_blocks: List[ExerciseBlockResponse] = []
     created_at: datetime
     updated_at: datetime
@@ -155,10 +152,25 @@ class TrainingSessionResponse(TrainingSessionBase):
 
 class TrainingSessionListResponse(BaseModel):
     """Schema for simplified training session list response."""
+    id: int
     name: str
     day_of_week: Optional[int] = None
-    is_session_active: bool
-    is_session_completed: bool
+    session_status: str
+
+    @field_serializer('session_status')
+    def serialize_session_status(self, session_status, _info):
+        """Convert SessionStatus enum to string"""
+        if hasattr(session_status, 'value'):
+            return session_status.value
+        return session_status
+
+    class Config:
+        from_attributes = True
+
+class SessionExercisesResponse(BaseModel):
+    """Schema for session exercises grouped by block type."""
+    main: List[ProgrammedExerciseResponse] = []
+    accessory: List[ProgrammedExerciseResponse] = []
 
     class Config:
         from_attributes = True
@@ -170,6 +182,15 @@ class TrainingWeekResponse(TrainingWeekBase):
     training_sessions: List[TrainingSessionResponse] = []
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class TrainingWeekListResponse(BaseModel):
+    """Schema for simplified training week list response."""
+    id: int
+    week_number: int
+    description: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -75,17 +75,8 @@ async def get_week_sessions(
     result = await db.execute(stmt)
     sessions = result.scalars().all()
 
-    # Transform to simplified response format
-    simplified_sessions = []
-    for session in sessions:
-        simplified_sessions.append({
-            "name": session.name,
-            "day_of_week": session.day_of_week,
-            "is_session_active": session.is_session_active,
-            "is_session_completed": session.is_session_completed
-        })
-
-    return simplified_sessions
+    # Return sessions directly - Pydantic will handle the transformation using the schema
+    return sessions
 
 @router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}", response_model=TrainingSessionResponse)
 async def get_week_session(
@@ -314,7 +305,7 @@ async def start_session(
                 "name": session.name,
                 "week_id": session.week_id,
                 "day_of_week": session.day_of_week,
-                "is_active": session.is_session_active,
+                "session_status": session.session_status.value,
                 "start_time": session.session_start_time
             }
         }

@@ -151,12 +151,10 @@ class StrengthLogCreate(StrengthLogBase):
     """
     Schema for creating a new strength training log entry.
     
-    Extends the complete base schema with required user and training session identification.
+    The programmed_exercise_id is now provided via the URL path, not the request body.
+    Users can only log exercises that are programmed in their training session.
     """
-    user_id: int
-    training_session_id: int
-    standard_exercise_id: int
-    programmed_exercise_id: Optional[int] = None
+    pass  # All fields come from StrengthLogBase
 
 # Actualizar
 class StrengthLogUpdate(BaseModel):
@@ -186,8 +184,7 @@ class StrengthLog(StrengthLogBase):
     id: int
     user_id: int
     training_session_id: int
-    standard_exercise_id: int
-    programmed_exercise_id: Optional[int] = None
+    programmed_exercise_id: int
     exercise_date: datetime
     updated_at: datetime
 

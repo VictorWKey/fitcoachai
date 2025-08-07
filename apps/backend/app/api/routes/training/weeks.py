@@ -6,21 +6,21 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from typing import List, Annotated, Optional
+from typing import List, Annotated, Optional, Union
 
 from db.session import get_db
 from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.schemas.training_program import (
-    TrainingWeekResponse, TrainingWeekCreate, TrainingWeekUpdate
+    TrainingWeekResponse, TrainingWeekCreate, TrainingWeekUpdate, TrainingWeekListResponse
 )
 from api.services.auth import get_current_verified_user
 from typing import cast
 
 router = APIRouter()
 
-@router.get("/programs/{program_id}/weeks", response_model=List[TrainingWeekResponse])
+@router.get("/programs/{program_id}/weeks", response_model=List[TrainingWeekListResponse])
 async def get_program_weeks(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -29,7 +29,7 @@ async def get_program_weeks(
     """
     Get all weeks for a specific training program.
     
-    Returns a list of training weeks without their nested sessions.
+    Returns only basic week information: id, week_number, and description.
     """
     # Verify program exists and user has access
     stmt = select(TrainingProgram).where(
@@ -45,7 +45,7 @@ async def get_program_weeks(
             detail="Training program not found or access denied"
         )
     
-    # Get weeks for the program
+    # Get weeks for the program - no need for eager loading now
     stmt = select(TrainingWeek).where(
         TrainingWeek.program_id == program_id
     ).order_by(TrainingWeek.week_number)

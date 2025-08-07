@@ -13,14 +13,15 @@ from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession
-from db.models.exercise_block import ExerciseBlock
+from db.models.exercise_block import ExerciseBlock, BlockType
 from db.models.programmed_exercise import ProgrammedExercise
 from db.schemas.training_program import (
-    ExerciseBlockResponse, ProgrammedExerciseResponse,
+    ExerciseBlockResponse, ProgrammedExerciseResponse, SessionExercisesResponse,
     ExerciseBlockCreate, ProgrammedExerciseCreate,
     ExerciseBlockUpdate, ProgrammedExerciseUpdate
 )
 from api.services.auth import get_current_verified_user
+from core.services.exercise_analysis import infer_series_type
 from typing import cast
 
 router = APIRouter()
@@ -128,7 +129,7 @@ async def get_session_block(
     
     return block
 
-@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises", response_model=List[ProgrammedExerciseResponse])
+@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises", response_model=SessionExercisesResponse)
 async def get_session_exercises(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -137,9 +138,9 @@ async def get_session_exercises(
     session_id: int = Path(..., ge=1)
 ):
     """
-    Get all programmed exercises for a specific training session across all blocks.
+    Get all programmed exercises for a specific training session grouped by block type.
     
-    Returns a flat list of all exercises in the session, including their block information.
+    Returns exercises organized in a dictionary with 'main' and 'accessory' keys.
     """
     # Verify session exists and user has access
     stmt = select(TrainingSession).join(
@@ -161,17 +162,40 @@ async def get_session_exercises(
             detail="Training session not found or access denied"
         )
     
-    # Get all exercises for the session
-    stmt = select(ProgrammedExercise).join(
-        ExerciseBlock, ProgrammedExercise.block_id == ExerciseBlock.id
+    # Get all blocks for the session, with their programmed exercises and standard exercises
+    stmt = select(ExerciseBlock).options(
+        selectinload(ExerciseBlock.programmed_exercises).selectinload(ProgrammedExercise.standard_exercise)
     ).where(
         ExerciseBlock.session_id == session_id
-    ).order_by(ExerciseBlock.order, ProgrammedExercise.id)
-    
+    ).order_by(ExerciseBlock.order)
     result = await db.execute(stmt)
-    exercises = result.scalars().all()
-    
-    return exercises
+    blocks = result.scalars().all()
+
+    main_exercises = []
+    accessory_exercises = []
+
+    for block in blocks:
+        exercises = block.programmed_exercises
+        block_type = getattr(block, 'block_type', None)
+        
+        # Prepare exercise data with exercise names
+        for exercise in exercises:
+            # Set the exercise_name from the standard_exercise relationship
+            if exercise.standard_exercise:
+                exercise.exercise_name = exercise.standard_exercise.standard_name
+            else:
+                exercise.exercise_name = None
+        
+        # Agrupa según el tipo de bloque
+        if block_type == BlockType.MAIN:
+            main_exercises.extend(exercises)
+        elif block_type == BlockType.ACCESSORY:
+            accessory_exercises.extend(exercises)
+
+    return {
+        "main": main_exercises,
+        "accessory": accessory_exercises
+    }
 
 @router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}", response_model=ProgrammedExerciseResponse)
 async def get_session_exercise(
@@ -207,8 +231,10 @@ async def get_session_exercise(
             detail="Training session not found or access denied"
         )
     
-    # Get the specific exercise
-    stmt = select(ProgrammedExercise).join(
+    # Get the specific exercise with standard exercise
+    stmt = select(ProgrammedExercise).options(
+        selectinload(ProgrammedExercise.standard_exercise)
+    ).join(
         ExerciseBlock, ProgrammedExercise.block_id == ExerciseBlock.id
     ).where(
         ProgrammedExercise.id == exercise_id,
@@ -223,6 +249,12 @@ async def get_session_exercise(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Programmed exercise not found"
         )
+    
+    # Set the exercise_name from the standard_exercise relationship
+    if exercise.standard_exercise:
+        exercise.exercise_name = exercise.standard_exercise.standard_name
+    else:
+        exercise.exercise_name = None
     
     return exercise
 
@@ -319,6 +351,17 @@ async def create_block_exercise(
             detail="Exercise block not found or access denied"
         )
     
+    # Calculate sets_type automatically if not provided
+    calculated_sets_type = exercise_data.sets_type
+    if calculated_sets_type is None:
+        calculated_sets_type = infer_series_type(
+            reps=exercise_data.reps,
+            one_rm_percentage=exercise_data.percentage_1rm,
+            rpe=exercise_data.rpe_target,
+            tempo=exercise_data.tempo,
+            rest_time_seconds=exercise_data.rest_seconds
+        )
+    
     # Create the new exercise
     new_exercise = ProgrammedExercise(
         block_id=block_id,
@@ -332,12 +375,17 @@ async def create_block_exercise(
         percentage_1rm=exercise_data.percentage_1rm,
         weight_range=exercise_data.weight_range,
         rest_seconds=exercise_data.rest_seconds,
-        sets_type=exercise_data.sets_type,
-        custom_parameters=exercise_data.custom_parameters
+        sets_type=calculated_sets_type
     )
     
     db.add(new_exercise)
     await db.commit()
-    await db.refresh(new_exercise)
+    await db.refresh(new_exercise, ['standard_exercise'])
+    
+    # Set the exercise_name from the standard_exercise relationship
+    if new_exercise.standard_exercise:
+        new_exercise.exercise_name = new_exercise.standard_exercise.standard_name
+    else:
+        new_exercise.exercise_name = None
     
     return new_exercise

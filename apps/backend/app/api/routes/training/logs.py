@@ -11,6 +11,8 @@ from typing import List, Annotated, Optional, Dict, Any, cast, Union
 from db.session import get_db
 from db.models.user import User
 from db.models.training_session import TrainingSession, SessionStatus
+from db.models.training_week import TrainingWeek
+from db.models.training_program import TrainingProgram
 from db.models.exercise_block import ExerciseBlock
 from db.models.programmed_exercise import ProgrammedExercise
 from db.models.strength_log import StrengthLog
@@ -43,17 +45,16 @@ async def verify_session_access(
     
     Retorna el objeto de sesión si todo está bien, o lanza excepciones HTTP apropiadas.
     """
-    # Verificamos que la sesión exista y pertenezca al usuario
-    stmt = select(TrainingSession).where(
-        TrainingSession.id == session_id,
-        TrainingSession.user_id == user_id
+    # Verificamos que la sesión exista y pertenezca al usuario correcto, programa y semana
+    stmt = select(TrainingSession).join(
+        TrainingWeek, TrainingSession.week_id == TrainingWeek.id
     ).join(
-        TrainingSession.training_week
+        TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
     ).where(
-        TrainingSession.training_week.has(
-            week_id=week_id,
-            program_id=program_id
-        )
+        TrainingSession.id == session_id,
+        TrainingWeek.id == week_id,
+        TrainingProgram.id == program_id,
+        TrainingProgram.user_id == user_id
     ).options(
         selectinload(TrainingSession.exercise_blocks).selectinload(ExerciseBlock.programmed_exercises),
         selectinload(TrainingSession.strength_logs),
@@ -73,13 +74,15 @@ async def verify_session_access(
         if not check_session:
             raise HTTPException(status_code=404, detail="Training session not found")
             
-        # Verificamos si pertenece al programa y semana
-        check_program_stmt = select(TrainingSession).where(
+        # Verificamos si pertenece al programa y semana correctos
+        check_program_stmt = select(TrainingSession).join(
+            TrainingWeek, TrainingSession.week_id == TrainingWeek.id
+        ).join(
+            TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
+        ).where(
             TrainingSession.id == session_id,
-            TrainingSession.training_week.has(
-                week_id=week_id,
-                program_id=program_id
-            )
+            TrainingWeek.id == week_id,
+            TrainingProgram.id == program_id
         )
         check_program_result = await db.execute(check_program_stmt)
         if check_program_result.scalar_one_or_none() is None:
@@ -217,14 +220,15 @@ async def get_exercise_logs_in_session_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving exercise logs: {str(e)}")
 
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/strength", response_model=StrengthLogResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/strength", response_model=StrengthLogResponse, status_code=status.HTTP_201_CREATED)
 async def create_strength_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     log_data: StrengthLogCreate,
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
+    session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1)
 ):
     """
     Create a new strength exercise log entry for a training session.
@@ -252,7 +256,10 @@ async def create_strength_log_endpoint(
         # Crear el log de fuerza
         new_log = await create_strength_log(
             db=db,
-            log_data=StrengthLogCreate(**log_data_dict)
+            log_data=StrengthLogCreate(**log_data_dict),
+            user_id=cast(int, current_user.id),
+            training_session_id=session_id,
+            programmed_exercise_id=exercise_id
         )
         
         return new_log
@@ -261,14 +268,15 @@ async def create_strength_log_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating strength log: {str(e)}")
 
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/cardio", response_model=CardioLogResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/cardio", response_model=CardioLogResponse, status_code=status.HTTP_201_CREATED)
 async def create_cardio_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     log_data: CardioLogCreate,
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
+    session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1)
 ):
     """
     Create a new cardio exercise log entry for a training session.
@@ -306,7 +314,7 @@ async def create_cardio_log_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating cardio log: {str(e)}")
 
-@router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/strength/{log_id}", response_model=StrengthLogResponse)
+@router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/strength/{log_id}", response_model=StrengthLogResponse)
 async def update_strength_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -314,6 +322,7 @@ async def update_strength_log_endpoint(
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
     session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1),
     log_id: int = Path(..., ge=1)
 ):
     """
@@ -356,7 +365,7 @@ async def update_strength_log_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating strength log: {str(e)}")
 
-@router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/cardio/{log_id}", response_model=CardioLogResponse)
+@router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/cardio/{log_id}", response_model=CardioLogResponse)
 async def update_cardio_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -364,6 +373,7 @@ async def update_cardio_log_endpoint(
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
     session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1),
     log_id: int = Path(..., ge=1)
 ):
     """
@@ -405,13 +415,14 @@ async def update_cardio_log_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating cardio log: {str(e)}")
 
-@router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/strength/{log_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/strength/{log_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_strength_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
     session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1),
     log_id: int = Path(..., ge=1)
 ):
     """
@@ -453,13 +464,14 @@ async def delete_strength_log_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting strength log: {str(e)}")
 
-@router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/cardio/{log_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/cardio/{log_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_cardio_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
     session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1),
     log_id: int = Path(..., ge=1)
 ):
     """

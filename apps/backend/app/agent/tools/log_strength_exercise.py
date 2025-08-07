@@ -22,6 +22,10 @@ from core.services.exercise_analysis import infer_series_type
 from utils.tempo_utils import fix_tempo_format
 from db.models.standard_exercises import MuscleGroupEnum, EquipmentEnum
 from db.crud.standard_exercises import get_standard_exercise_by_name, get_standard_exercises_by_equipment_and_muscle_group
+from db.models.programmed_exercise import ProgrammedExercise
+from db.models.exercise_block import ExerciseBlock
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -79,10 +83,32 @@ async def log_strength_exercise(
                     "Please select and start a session from your training program first."
                 )
             
-            # Get standard exercise
-            standard_exercise = await get_standard_exercise_by_name(db, input.exercise_name)
-            if not standard_exercise:
-                return f"❌ Exercise '{input.exercise_name}' not found in the database"
+            # Find the programmed exercise in the active session by exercise name
+            stmt = select(ProgrammedExercise).join(
+                ExerciseBlock, ProgrammedExercise.block_id == ExerciseBlock.id
+            ).options(
+                selectinload(ProgrammedExercise.standard_exercise)
+            ).where(
+                ExerciseBlock.session_id == getattr(active_session, 'id')
+            )
+            
+            result = await db.execute(stmt)
+            programmed_exercises = result.scalars().all()
+            
+            # Find matching exercise by name
+            matching_exercise = None
+            for pe in programmed_exercises:
+                if pe.standard_exercise and pe.standard_exercise.name.lower() == input.exercise_name.lower():
+                    matching_exercise = pe
+                    break
+            
+            if not matching_exercise:
+                available_exercises = [pe.standard_exercise.name for pe in programmed_exercises if pe.standard_exercise]
+                return (
+                    f"❌ Exercise '{input.exercise_name}' is not programmed in your current session.\\n\\n"
+                    f"**Available exercises in this session:**\\n" + 
+                    "\\n".join([f"• {name}" for name in available_exercises])
+                )
             
             # Fix tempo format if provided
             tempo = None
@@ -103,9 +129,7 @@ async def log_strength_exercise(
             
             # Create strength log
             log_data = StrengthLogCreate(
-                user_id=user_id,
-                training_session_id=getattr(active_session, 'id'),
-                standard_exercise_id=getattr(standard_exercise, 'id'),
+                programmed_exercise_id=cast(int, matching_exercise.id),
                 set_number=input.set_number,
                 set_type=set_type,
                 repetitions_done=input.repetitions_done,
@@ -119,7 +143,12 @@ async def log_strength_exercise(
             )
             
             # Create the log entry
-            strength_log = await create_strength_log(db, log_data)
+            strength_log = await create_strength_log(
+                db=db, 
+                log_data=log_data,
+                user_id=user_id,
+                training_session_id=getattr(active_session, 'id')
+            )
             
             # Note: Program linking would happen here in a complete implementation
             # but is optional for basic functionality

@@ -5,7 +5,7 @@ ORM model for the exercise logs table.
 from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from sqlalchemy import Index
+from sqlalchemy import Index, UniqueConstraint
 import enum
 
 from ..base import Base
@@ -63,8 +63,8 @@ class StrengthLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     training_session_id = Column(Integer, ForeignKey("training_sessions.id"), nullable=False)
-    standard_exercise_id = Column(Integer, ForeignKey("standard_exercise.id"), nullable=False)
-    programmed_exercise_id = Column(Integer, ForeignKey("programmed_exercises.id"), nullable=True)
+    programmed_exercise_id = Column(Integer, ForeignKey("programmed_exercises.id"), nullable=False)
+    standard_exercise_id = Column(Integer, ForeignKey("standard_exercise.id"), nullable=True)  # Se obtiene del ejercicio programado
     set_number = Column(Integer, nullable=False)
     set_type = Column(Enum(SetType), nullable=True)
     repetitions_done = Column(Integer, nullable=False)
@@ -85,6 +85,7 @@ class StrengthLog(Base):
     
     __table_args__ = (
         Index("idx_user_exercise_date", "user_id", "exercise_date"),
+        UniqueConstraint("programmed_exercise_id", "set_number", "training_session_id", name="uq_strength_log_set"),
     )
     
     def __repr__(self):

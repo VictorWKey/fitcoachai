@@ -11,7 +11,7 @@ This module contains Pydantic schemas for training session management including:
 All schemas support the session-based training system.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional, List
 from datetime import datetime
 from db.models.training_session import SessionStatus
@@ -52,7 +52,7 @@ class TrainingSessionStatus(BaseModel):
     
     Contains fields for tracking session progress and state.
     """
-    session_status: SessionStatus = Field(default=SessionStatus.ACTIVE, description="Current status of the session")
+    session_status: SessionStatus = Field(default=SessionStatus.PENDING, description="Current status of the session")
     session_start_time: Optional[datetime] = Field(None, description="When the session was started")
     session_end_time: Optional[datetime] = Field(None, description="When the session was finished")
     session_duration_seconds: Optional[int] = Field(None, description="Total session duration from frontend timer")
@@ -72,7 +72,7 @@ class TrainingSession(TrainingSessionBase):
     updated_at: datetime
     
     # Session status fields
-    session_status: SessionStatus = SessionStatus.ACTIVE
+    session_status: str = "pending"
     session_start_time: Optional[datetime] = None
     session_end_time: Optional[datetime] = None
     session_duration_seconds: Optional[int] = None
@@ -113,10 +113,17 @@ class TrainingSessionListResponse(BaseModel):
     
     Contains only essential fields for session listing.
     """
+    id: int = Field(..., description="ID of the training session")
     name: str = Field(..., description="Name of the training session")
     day_of_week: Optional[int] = Field(None, description="Day of the week (1-7 for Monday-Sunday)")
-    is_session_active: bool = Field(..., description="Whether this session is currently active")
-    is_session_completed: bool = Field(..., description="Whether this session is completed")
+    session_status: str = Field(..., description="Current status of the session (pending, active, completed, abandoned)")
+
+    @field_serializer('session_status')
+    def serialize_session_status(self, session_status, _info):
+        """Convert SessionStatus enum to string"""
+        if hasattr(session_status, 'value'):
+            return session_status.value
+        return session_status
 
     class Config:
         from_attributes = True
