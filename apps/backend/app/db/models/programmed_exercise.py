@@ -22,37 +22,55 @@ class LoadType(enum.Enum):
     PERCENTAGE = "percentage"
     WEIGHT = "weight"
 
+class BlockType(enum.Enum):
+    """
+    Enumeration of exercise block types.
+    
+    Attributes:
+        MAIN: Main exercises (e.g., squat, bench press, deadlift)
+        ACCESSORY: Accessory exercises (e.g., leg press, chest flies)
+    """
+    MAIN = "main"
+    ACCESSORY = "accessory"
+
 class ProgrammedExercise(Base):
     """
     Programmed Exercise model for the FitCoach AI application.
     
     Attributes:
         id: Unique identifier for the programmed exercise
-        block_id: ID of the exercise block to which this exercise belongs
-        exercise_name: Name of the exercise
+        session_id: ID of the training session to which this exercise belongs
         standard_exercise_id: ID of the standard exercise (optional)
-        variation: Optional variation of the exercise (e.g., "Tempo", "1 Ct Paused")
+        block: Type of block - "main" or "accessory" (replaces exercise_block table)
+        tempo: Exercise tempo
         sets: Number of sets
         reps: Number of repetitions
         load_type: Type of load (RPE, percentage, weight)
-        load_value: Value of the load (e.g., "8" for RPE, "-15%" for percentage)
         rpe_target: Target RPE value
         percentage_1rm: Percentage of 1RM
         weight_range: Range of weight (e.g., "225-235")
         rest_seconds: Rest time in seconds
-        exercise_type: Type of exercise (strength, hypertrophy, technique)
+        sets_type: Type of sets (strength, hypertrophy, technique)
+        notes: Optional notes
         created_at: Creation date of the record
         updated_at: Date of the last update to the record
         
     Relationships:
-        exercise_block: Relationship with the parent exercise block
+        training_session: Relationship with the parent training session
         standard_exercise: Relationship with the standard exercise definition
+        exercise_logs: Relationship with strength logs
+        cardio_logs: Relationship with cardio logs
     """
     __tablename__ = "programmed_exercises"
     
     id = Column(Integer, primary_key=True, index=True)
-    block_id = Column(Integer, ForeignKey("exercise_blocks.id"), nullable=False)
+    session_id = Column(Integer, ForeignKey("training_sessions.id"), nullable=False)
     standard_exercise_id = Column(Integer, ForeignKey("standard_exercise.id"), nullable=True)
+    
+    # Block type (replaces exercise_block table)
+    block = Column(Enum(BlockType), nullable=False)
+    
+    # Exercise properties
     tempo = Column(String, nullable=True)  # Format: "E-B-C-T" (eccentric-bottom-concentric-top)
     sets = Column(Integer, nullable=True)
     reps = Column(Integer, nullable=True)
@@ -67,9 +85,14 @@ class ProgrammedExercise(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    exercise_block = relationship("ExerciseBlock", back_populates="programmed_exercises")
+    training_session = relationship("TrainingSession", back_populates="programmed_exercises")
     standard_exercise = relationship("StandardExercise", back_populates="programmed_exercises")
     exercise_logs = relationship("StrengthLog", back_populates="programmed_exercise")
+    cardio_logs = relationship("CardioLog", back_populates="programmed_exercise")
+    
+    def __repr__(self):
+        """String representation of the programmed exercise."""
+        return f"<ProgrammedExercise {self.id}: {self.block}>"
     
     def __repr__(self):
         """String representation of the programmed exercise."""

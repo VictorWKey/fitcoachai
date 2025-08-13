@@ -33,14 +33,32 @@ async def get_session_cardio_logs(db: AsyncSession, session_id: int) -> List[Car
         session_id: ID of the training session
         
     Returns:
-        List[CardioLog]: List of cardio logs for the session
+        List[CardioLog]: List of cardio logs for the session (both programmed and free cardio)
     """
-    result = await db.execute(
+    from db.models.programmed_exercise import ProgrammedExercise
+    
+    # Get free cardio logs (directly linked to session)
+    free_cardio_result = await db.execute(
         select(CardioLog)
         .where(CardioLog.training_session_id == session_id)
         .order_by(CardioLog.exercise_date)
     )
-    return list(result.scalars().all())
+    free_cardio_logs = list(free_cardio_result.scalars().all())
+    
+    # Get programmed cardio logs (linked through programmed_exercise directly to session)
+    programmed_cardio_result = await db.execute(
+        select(CardioLog)
+        .join(ProgrammedExercise, CardioLog.programmed_exercise_id == ProgrammedExercise.id)
+        .where(ProgrammedExercise.session_id == session_id)
+        .order_by(CardioLog.exercise_date)
+    )
+    programmed_cardio_logs = list(programmed_cardio_result.scalars().all())
+    
+    # Combine and sort all cardio logs
+    all_cardio_logs = free_cardio_logs + programmed_cardio_logs
+    all_cardio_logs.sort(key=lambda log: log.exercise_date)
+    
+    return all_cardio_logs
 
 async def create_cardio_log(db: AsyncSession, log_data: CardioLogCreate) -> CardioLog:
     """
@@ -52,7 +70,33 @@ async def create_cardio_log(db: AsyncSession, log_data: CardioLogCreate) -> Card
         
     Returns:
         CardioLog: The created cardio log
+        
+    Raises:
+        ValueError: If both or neither programmed_exercise_id and training_session_id are provided
     """
+    # Validar que solo uno de los dos IDs se proporcione
+    has_programmed = log_data.programmed_exercise_id is not None
+    has_session = log_data.training_session_id is not None
+    
+    if has_programmed and has_session:
+        raise ValueError("Cannot provide both programmed_exercise_id and training_session_id. Use only one.")
+    
+    if not has_programmed and not has_session:
+        raise ValueError("Must provide either programmed_exercise_id or training_session_id.")
+    
+    # Si es cardio programado, verificar que el ejercicio programado existe
+    if has_programmed:
+        from db.models.programmed_exercise import ProgrammedExercise
+        
+        programmed_exercise = await db.execute(
+            select(ProgrammedExercise)
+            .where(ProgrammedExercise.id == log_data.programmed_exercise_id)
+        )
+        programmed_exercise = programmed_exercise.scalar_one_or_none()
+        
+        if not programmed_exercise:
+            raise ValueError(f"Programmed exercise {log_data.programmed_exercise_id} not found")
+    
     db_log = CardioLog(**log_data.model_dump())
     db.add(db_log)
     await db.commit()

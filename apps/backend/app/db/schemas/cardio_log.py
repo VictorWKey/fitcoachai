@@ -141,10 +141,14 @@ class CardioLogCreate(CardioLogBase):
     """
     Schema for creating a new cardiovascular exercise log entry.
     
-    Extends the complete base schema with required user and training session identification.
+    Can be either:
+    - Programmed cardio: provide programmed_exercise_id (session derived automatically)
+    - Free cardio: provide training_session_id directly
     """
+    # One of these two should be provided, but not both
+    programmed_exercise_id: Optional[int] = None
+    training_session_id: Optional[int] = None
     user_id: int
-    training_session_id: int
 
 # Actualizar
 class CardioLogUpdate(BaseModel):
@@ -164,6 +168,8 @@ class CardioLogUpdate(BaseModel):
     intensity_level: Optional[int] = None
     incline_level: Optional[int] = None
     notes: Optional[str] = None
+    programmed_exercise_id: Optional[int] = None
+    training_session_id: Optional[int] = None
 
 # Respuesta
 class CardioLog(CardioLogBase):
@@ -174,7 +180,8 @@ class CardioLog(CardioLogBase):
     """
     id: int
     user_id: int
-    training_session_id: int
+    programmed_exercise_id: Optional[int] = None
+    training_session_id: Optional[int] = None
     exercise_date: datetime
     updated_at: datetime
 

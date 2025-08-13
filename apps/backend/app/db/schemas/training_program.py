@@ -7,32 +7,24 @@ from typing import List, Optional
 from datetime import datetime
 from enum import Enum
 from db.models.training_program import ProgramType
-from db.models.exercise_block import BlockType
-from db.models.programmed_exercise import LoadType
+from db.models.programmed_exercise import LoadType, BlockType
 from db.models.strength_log import SetType
 
 
 # Base schemas
 class ProgrammedExerciseBase(BaseModel):
     """Base schema for programmed exercises."""
+    block: BlockType
     tempo: Optional[str] = None
     sets: Optional[int] = None
     reps: Optional[int] = None
     load_type: Optional[LoadType] = None
-    load_value: Optional[str] = None
     rpe_target: Optional[float] = None
     percentage_1rm: Optional[float] = None
     weight_range: Optional[str] = None
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
     sets_type: Optional[SetType] = None
-
-class ExerciseBlockBase(BaseModel):
-    """Base schema for exercise blocks."""
-    name: str
-    block_type: BlockType 
-    order: int
-    description: Optional[str] = None
 
 class TrainingSessionBase(BaseModel):
     """Base schema for training sessions."""
@@ -59,13 +51,9 @@ class ProgrammedExerciseCreate(ProgrammedExerciseBase):
     """Schema for creating a programmed exercise."""
     standard_exercise_id: int
 
-class ExerciseBlockCreate(ExerciseBlockBase):
-    """Schema for creating an exercise block."""
-    programmed_exercises: List[ProgrammedExerciseCreate] = []
-
 class TrainingSessionCreate(TrainingSessionBase):
     """Schema for creating a training session."""
-    exercise_blocks: List[ExerciseBlockCreate] = []
+    programmed_exercises: List[ProgrammedExerciseCreate] = []
 
 class TrainingWeekCreate(TrainingWeekBase):
     """Schema for creating a training week."""
@@ -78,24 +66,17 @@ class TrainingProgramCreate(TrainingProgramBase):
 # Update schemas
 class ProgrammedExerciseUpdate(BaseModel):
     """Schema for updating a programmed exercise."""
-    exercise_name: Optional[str] = None
-    variation: Optional[str] = None
+    block: Optional[BlockType] = None
+    tempo: Optional[str] = None
     sets: Optional[int] = None
     reps: Optional[int] = None
     load_type: Optional[LoadType] = None
-    load_value: Optional[str] = None
     rpe_target: Optional[float] = None
     percentage_1rm: Optional[float] = None
     weight_range: Optional[str] = None
     rest_seconds: Optional[int] = None
     notes: Optional[str] = None
-
-class ExerciseBlockUpdate(BaseModel):
-    """Schema for updating an exercise block."""
-    name: Optional[str] = None
-    block_type: Optional[BlockType] = None
-    order: Optional[int] = None
-    description: Optional[str] = None
+    sets_type: Optional[SetType] = None
 
 class TrainingSessionUpdate(BaseModel):
     """Schema for updating a training session."""
@@ -119,19 +100,8 @@ class TrainingProgramUpdate(BaseModel):
 class ProgrammedExerciseResponse(ProgrammedExerciseBase):
     """Schema for programmed exercise response."""
     id: int
-    block_id: int
-    exercise_name: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class ExerciseBlockResponse(ExerciseBlockBase):
-    """Schema for exercise block response."""
-    id: int
     session_id: int
-    programmed_exercises: List[ProgrammedExerciseResponse] = []
+    exercise_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -143,7 +113,7 @@ class TrainingSessionResponse(TrainingSessionBase):
     id: int
     week_id: int
     session_status: str
-    exercise_blocks: List[ExerciseBlockResponse] = []
+    programmed_exercises: List[ProgrammedExerciseResponse] = []
     created_at: datetime
     updated_at: datetime
 

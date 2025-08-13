@@ -12,7 +12,6 @@ from db.models.training_session import TrainingSession
 from db.models.programmed_exercise import ProgrammedExercise
 from db.models.strength_log import StrengthLog
 from db.models.standard_exercises import StandardExercise
-from db.models.exercise_block import ExerciseBlock
 from utils.load_utils import calculate_weight_from_load
 
 async def get_active_program_for_user(db: AsyncSession, user_id: int) -> Optional[TrainingProgram]:
@@ -91,33 +90,39 @@ async def find_matching_programmed_exercise(
     Returns:
         Matching programmed exercise or None if no match found
     """
-    # Get all programmed exercises for this session
+    from sqlalchemy.orm import selectinload
+    
+    # Get all programmed exercises for this session with their standard exercises
     result = await db.execute(
         select(ProgrammedExercise)
-        .join(ExerciseBlock)
-        .where(ExerciseBlock.session_id == session_id)
-        .order_by(ExerciseBlock.order, ProgrammedExercise.id)
+        .options(selectinload(ProgrammedExercise.standard_exercise))
+        .where(ProgrammedExercise.session_id == session_id)
+        .order_by(ProgrammedExercise.block, ProgrammedExercise.id)
     )
     programmed_exercises = list(result.scalars().all())
     
-    # Try exact match first
-    for exercise in programmed_exercises:
-        if exercise.exercise_name.lower() == exercise_name.lower():
-            return exercise
-    
-    # Try partial match
+    # Try exact match by standard exercise name
     exercise_name_lower = exercise_name.lower()
     for exercise in programmed_exercises:
-        if (exercise_name_lower in exercise.exercise_name.lower() or 
-            exercise.exercise_name.lower() in exercise_name_lower):
-            return exercise
+        if exercise.standard_exercise and exercise.standard_exercise.standard_name:
+            standard_name_lower = exercise.standard_exercise.standard_name.lower()
+            if standard_name_lower == exercise_name_lower:
+                return exercise
     
-    # Try matching by standard_exercise_id if available
+    # Try partial match
+    for exercise in programmed_exercises:
+        if exercise.standard_exercise and exercise.standard_exercise.standard_name:
+            standard_name_lower = exercise.standard_exercise.standard_name.lower()
+            if (exercise_name_lower in standard_name_lower or 
+                standard_name_lower in exercise_name_lower):
+                return exercise
+    
+    # Try matching by standard_exercise_id directly
     try:
         # Get standard exercise by name
         standard_result = await db.execute(
             select(StandardExercise)
-            .where(StandardExercise.name.ilike(f"%{exercise_name}%"))
+            .where(StandardExercise.standard_name.ilike(f"%{exercise_name}%"))
             .limit(1)
         )
         standard_exercise = standard_result.scalar_one_or_none()

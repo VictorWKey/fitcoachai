@@ -9,6 +9,6 @@ from .training_program import (
     TrainingProgramCreate, TrainingProgramUpdate, TrainingProgramResponse, TrainingProgramSimpleResponse,
     TrainingWeekCreate, TrainingWeekUpdate, TrainingWeekResponse, TrainingWeekListResponse,
     TrainingSessionCreate, TrainingSessionUpdate, TrainingSessionResponse,
-    ExerciseBlockCreate, ExerciseBlockUpdate, ExerciseBlockResponse,
-    ProgrammedExerciseCreate, ProgrammedExerciseUpdate, ProgrammedExerciseResponse
+    ProgrammedExerciseCreate, ProgrammedExerciseUpdate, ProgrammedExerciseResponse,
+    SessionExercisesResponse
 )

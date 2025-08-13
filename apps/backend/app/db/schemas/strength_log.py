@@ -151,7 +151,8 @@ class StrengthLogCreate(StrengthLogBase):
     """
     Schema for creating a new strength training log entry.
     
-    The programmed_exercise_id is now provided via the URL path, not the request body.
+    The programmed_exercise_id is now the only required foreign key.
+    The session information is derived through the programmed_exercise -> session relationship.
     Users can only log exercises that are programmed in their training session.
     """
     pass  # All fields come from StrengthLogBase
@@ -183,7 +184,6 @@ class StrengthLog(StrengthLogBase):
     """
     id: int
     user_id: int
-    training_session_id: int
     programmed_exercise_id: int
     exercise_date: datetime
     updated_at: datetime

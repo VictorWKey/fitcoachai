@@ -13,121 +13,17 @@ from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession
-from db.models.exercise_block import ExerciseBlock, BlockType
-from db.models.programmed_exercise import ProgrammedExercise
+from db.models.programmed_exercise import ProgrammedExercise, BlockType
 from db.schemas.training_program import (
-    ExerciseBlockResponse, ProgrammedExerciseResponse, SessionExercisesResponse,
-    ExerciseBlockCreate, ProgrammedExerciseCreate,
-    ExerciseBlockUpdate, ProgrammedExerciseUpdate
+    ProgrammedExerciseResponse, SessionExercisesResponse,
+    ProgrammedExerciseCreate,
+    ProgrammedExerciseUpdate
 )
 from api.services.auth import get_current_verified_user
 from core.services.exercise_analysis import infer_series_type
 from typing import cast
 
 router = APIRouter()
-
-@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/blocks", response_model=List[ExerciseBlockResponse])
-async def get_session_blocks(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Get all exercise blocks for a specific training session.
-    
-    Returns a list of exercise blocks without their nested exercises.
-    """
-    # Verify session exists and user has access
-    stmt = select(TrainingSession).join(
-        TrainingWeek, TrainingSession.week_id == TrainingWeek.id
-    ).join(
-        TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
-    ).where(
-        TrainingSession.id == session_id,
-        TrainingWeek.id == week_id,
-        TrainingProgram.id == program_id,
-        TrainingProgram.user_id == current_user.id
-    )
-    result = await db.execute(stmt)
-    session = result.scalar_one_or_none()
-    
-    if not session:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found or access denied"
-        )
-    
-    # Get blocks for the session
-    stmt = select(ExerciseBlock).where(
-        ExerciseBlock.session_id == session_id
-    ).order_by(ExerciseBlock.order)
-    
-    result = await db.execute(stmt)
-    blocks = result.scalars().all()
-    
-    return blocks
-
-@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/blocks/{block_id}", response_model=ExerciseBlockResponse)
-async def get_session_block(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1),
-    block_id: int = Path(..., ge=1),
-    include_exercises: bool = Query(True, description="Include programmed exercises in response")
-):
-    """
-    Get a specific exercise block from a training session.
-    
-    Returns details of the exercise block. By default includes exercises.
-    """
-    # Verify session exists and user has access
-    stmt = select(TrainingSession).join(
-        TrainingWeek, TrainingSession.week_id == TrainingWeek.id
-    ).join(
-        TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
-    ).where(
-        TrainingSession.id == session_id,
-        TrainingWeek.id == week_id,
-        TrainingProgram.id == program_id,
-        TrainingProgram.user_id == current_user.id
-    )
-    result = await db.execute(stmt)
-    session = result.scalar_one_or_none()
-    
-    if not session:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found or access denied"
-        )
-    
-    # Get the specific block
-    if include_exercises:
-        stmt = select(ExerciseBlock).options(
-            selectinload(ExerciseBlock.programmed_exercises)
-        ).where(
-            ExerciseBlock.id == block_id,
-            ExerciseBlock.session_id == session_id
-        )
-    else:
-        stmt = select(ExerciseBlock).where(
-            ExerciseBlock.id == block_id,
-            ExerciseBlock.session_id == session_id
-        )
-    
-    result = await db.execute(stmt)
-    block = result.scalar_one_or_none()
-    
-    if not block:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Exercise block not found"
-        )
-    
-    return block
 
 @router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises", response_model=SessionExercisesResponse)
 async def get_session_exercises(
@@ -138,11 +34,9 @@ async def get_session_exercises(
     session_id: int = Path(..., ge=1)
 ):
     """
-    Get all programmed exercises for a specific training session grouped by block type.
-    
-    Returns exercises organized in a dictionary with 'main' and 'accessory' keys.
+    Get all exercises for a training session, grouped by block type (main/accessory).
     """
-    # Verify session exists and user has access
+    # Verify user has access to the program
     stmt = select(TrainingSession).join(
         TrainingWeek, TrainingSession.week_id == TrainingWeek.id
     ).join(
@@ -162,35 +56,31 @@ async def get_session_exercises(
             detail="Training session not found or access denied"
         )
     
-    # Get all blocks for the session, with their programmed exercises and standard exercises
-    stmt = select(ExerciseBlock).options(
-        selectinload(ExerciseBlock.programmed_exercises).selectinload(ProgrammedExercise.standard_exercise)
+    # Get all exercises for the session with their standard exercises
+    stmt = select(ProgrammedExercise).options(
+        selectinload(ProgrammedExercise.standard_exercise)
     ).where(
-        ExerciseBlock.session_id == session_id
-    ).order_by(ExerciseBlock.order)
+        ProgrammedExercise.session_id == session_id
+    ).order_by(ProgrammedExercise.block, ProgrammedExercise.id)
+    
     result = await db.execute(stmt)
-    blocks = result.scalars().all()
+    exercises = result.scalars().all()
 
     main_exercises = []
     accessory_exercises = []
 
-    for block in blocks:
-        exercises = block.programmed_exercises
-        block_type = getattr(block, 'block_type', None)
+    for exercise in exercises:
+        # Set the exercise_name from the standard_exercise relationship
+        if exercise.standard_exercise:
+            exercise.exercise_name = exercise.standard_exercise.standard_name
+        else:
+            exercise.exercise_name = None
         
-        # Prepare exercise data with exercise names
-        for exercise in exercises:
-            # Set the exercise_name from the standard_exercise relationship
-            if exercise.standard_exercise:
-                exercise.exercise_name = exercise.standard_exercise.standard_name
-            else:
-                exercise.exercise_name = None
-        
-        # Agrupa según el tipo de bloque
-        if block_type == BlockType.MAIN:
-            main_exercises.extend(exercises)
-        elif block_type == BlockType.ACCESSORY:
-            accessory_exercises.extend(exercises)
+        # Group by block type
+        if exercise.block == BlockType.MAIN:
+            main_exercises.append(exercise)
+        elif exercise.block == BlockType.ACCESSORY:
+            accessory_exercises.append(exercise)
 
     return {
         "main": main_exercises,
@@ -207,11 +97,9 @@ async def get_session_exercise(
     exercise_id: int = Path(..., ge=1)
 ):
     """
-    Get a specific programmed exercise from a training session.
-    
-    Returns details of the programmed exercise.
+    Get a specific exercise from a training session.
     """
-    # Verify session exists and user has access
+    # Verify user has access to the program
     stmt = select(TrainingSession).join(
         TrainingWeek, TrainingSession.week_id == TrainingWeek.id
     ).join(
@@ -234,11 +122,9 @@ async def get_session_exercise(
     # Get the specific exercise with standard exercise
     stmt = select(ProgrammedExercise).options(
         selectinload(ProgrammedExercise.standard_exercise)
-    ).join(
-        ExerciseBlock, ProgrammedExercise.block_id == ExerciseBlock.id
     ).where(
         ProgrammedExercise.id == exercise_id,
-        ExerciseBlock.session_id == session_id
+        ProgrammedExercise.session_id == session_id
     )
     
     result = await db.execute(stmt)
@@ -258,9 +144,9 @@ async def get_session_exercise(
     
     return exercise
 
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/blocks", response_model=ExerciseBlockResponse, status_code=status.HTTP_201_CREATED)
-async def create_session_block(
-    block_data: ExerciseBlockCreate,
+@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises", response_model=ProgrammedExerciseResponse, status_code=status.HTTP_201_CREATED)
+async def create_session_exercise(
+    exercise_data: ProgrammedExerciseCreate,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     program_id: int = Path(..., ge=1),
@@ -268,11 +154,9 @@ async def create_session_block(
     session_id: int = Path(..., ge=1)
 ):
     """
-    Create a new exercise block for a training session.
-    
-    This endpoint allows users to add a new exercise block to an existing training session.
+    Add a new programmed exercise to a training session.
     """
-    # Verify session exists and user has access
+    # Verify session exists and user has access to the program
     stmt = select(TrainingSession).join(
         TrainingWeek, TrainingSession.week_id == TrainingWeek.id
     ).join(
@@ -292,65 +176,6 @@ async def create_session_block(
             detail="Training session not found or access denied"
         )
     
-    # Create the new block
-    new_block = ExerciseBlock(
-        session_id=session_id,
-        name=block_data.name,
-        block_type=block_data.block_type,
-        order=block_data.order,
-        description=block_data.description
-    )
-    
-    db.add(new_block)
-    await db.commit()
-    await db.refresh(new_block)
-    
-    # Add exercises if provided
-    if hasattr(block_data, 'programmed_exercises') and block_data.programmed_exercises:
-        for exercise_data in block_data.programmed_exercises:
-            # Create exercise implementation
-            pass
-    
-    return new_block
-
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/blocks/{block_id}/exercises", response_model=ProgrammedExerciseResponse, status_code=status.HTTP_201_CREATED)
-async def create_block_exercise(
-    exercise_data: ProgrammedExerciseCreate,
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1),
-    block_id: int = Path(..., ge=1)
-):
-    """
-    Add a new programmed exercise to an exercise block.
-    
-    This endpoint allows users to add a new exercise to an existing exercise block.
-    """
-    # Verify block exists and user has access to the program
-    stmt = select(ExerciseBlock).join(
-        TrainingSession, ExerciseBlock.session_id == TrainingSession.id
-    ).join(
-        TrainingWeek, TrainingSession.week_id == TrainingWeek.id
-    ).join(
-        TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
-    ).where(
-        ExerciseBlock.id == block_id,
-        TrainingSession.id == session_id,
-        TrainingWeek.id == week_id,
-        TrainingProgram.id == program_id,
-        TrainingProgram.user_id == current_user.id
-    )
-    result = await db.execute(stmt)
-    block = result.scalar_one_or_none()
-    
-    if not block:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Exercise block not found or access denied"
-        )
-    
     # Calculate sets_type automatically if not provided
     calculated_sets_type = exercise_data.sets_type
     if calculated_sets_type is None:
@@ -364,18 +189,19 @@ async def create_block_exercise(
     
     # Create the new exercise
     new_exercise = ProgrammedExercise(
-        block_id=block_id,
+        session_id=session_id,
         standard_exercise_id=exercise_data.standard_exercise_id,
+        block=exercise_data.block,
         tempo=exercise_data.tempo,
         sets=exercise_data.sets,
         reps=exercise_data.reps,
         load_type=exercise_data.load_type,
-        load_value=exercise_data.load_value,
         rpe_target=exercise_data.rpe_target,
         percentage_1rm=exercise_data.percentage_1rm,
         weight_range=exercise_data.weight_range,
         rest_seconds=exercise_data.rest_seconds,
-        sets_type=calculated_sets_type
+        sets_type=calculated_sets_type,
+        notes=exercise_data.notes
     )
     
     db.add(new_exercise)
@@ -389,3 +215,95 @@ async def create_block_exercise(
         new_exercise.exercise_name = None
     
     return new_exercise
+
+@router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}", response_model=ProgrammedExerciseResponse)
+async def update_session_exercise(
+    exercise_data: ProgrammedExerciseUpdate,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    program_id: int = Path(..., ge=1),
+    week_id: int = Path(..., ge=1),
+    session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1)
+):
+    """
+    Update a programmed exercise in a training session.
+    """
+    # Verify user has access to the program and exercise
+    stmt = select(ProgrammedExercise).join(
+        TrainingSession, ProgrammedExercise.session_id == TrainingSession.id
+    ).join(
+        TrainingWeek, TrainingSession.week_id == TrainingWeek.id
+    ).join(
+        TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
+    ).where(
+        ProgrammedExercise.id == exercise_id,
+        TrainingSession.id == session_id,
+        TrainingWeek.id == week_id,
+        TrainingProgram.id == program_id,
+        TrainingProgram.user_id == current_user.id
+    )
+    result = await db.execute(stmt)
+    exercise = result.scalar_one_or_none()
+    
+    if not exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Programmed exercise not found or access denied"
+        )
+    
+    # Update the exercise
+    update_data = exercise_data.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(exercise, field, value)
+    
+    await db.commit()
+    await db.refresh(exercise, ['standard_exercise'])
+    
+    # Set the exercise_name from the standard_exercise relationship
+    if exercise.standard_exercise:
+        exercise.exercise_name = exercise.standard_exercise.standard_name
+    else:
+        exercise.exercise_name = None
+    
+    return exercise
+
+@router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_session_exercise(
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    program_id: int = Path(..., ge=1),
+    week_id: int = Path(..., ge=1),
+    session_id: int = Path(..., ge=1),
+    exercise_id: int = Path(..., ge=1)
+):
+    """
+    Delete a programmed exercise from a training session.
+    """
+    # Verify user has access to the program and exercise
+    stmt = select(ProgrammedExercise).join(
+        TrainingSession, ProgrammedExercise.session_id == TrainingSession.id
+    ).join(
+        TrainingWeek, TrainingSession.week_id == TrainingWeek.id
+    ).join(
+        TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
+    ).where(
+        ProgrammedExercise.id == exercise_id,
+        TrainingSession.id == session_id,
+        TrainingWeek.id == week_id,
+        TrainingProgram.id == program_id,
+        TrainingProgram.user_id == current_user.id
+    )
+    result = await db.execute(stmt)
+    exercise = result.scalar_one_or_none()
+    
+    if not exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Programmed exercise not found or access denied"
+        )
+    
+    await db.delete(exercise)
+    await db.commit()
+    
+    return None

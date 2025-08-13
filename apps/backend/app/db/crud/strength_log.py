@@ -37,10 +37,13 @@ async def get_all_session_logs(db: AsyncSession, session_id: int) -> List[Union[
     Returns:
         List[Union[StrengthLog, CardioLog]]: List of all exercise logs for the session, ordered by exercise_date
     """
-    # Get strength logs
+    # Get strength logs (now through programmed_exercise directly to session)
+    from db.models.programmed_exercise import ProgrammedExercise
+    
     strength_result = await db.execute(
         select(StrengthLog)
-        .where(StrengthLog.training_session_id == session_id)
+        .join(ProgrammedExercise, StrengthLog.programmed_exercise_id == ProgrammedExercise.id)
+        .where(ProgrammedExercise.session_id == session_id)
         .order_by(StrengthLog.exercise_date)
     )
     strength_logs = list(strength_result.scalars().all())
@@ -76,9 +79,12 @@ async def get_session_strength_logs(db: AsyncSession, session_id: int) -> List[S
     Returns:
         List[StrengthLog]: List of strength logs for the session
     """
+    from db.models.programmed_exercise import ProgrammedExercise
+    
     result = await db.execute(
         select(StrengthLog)
-        .where(StrengthLog.training_session_id == session_id)
+        .join(ProgrammedExercise, StrengthLog.programmed_exercise_id == ProgrammedExercise.id)
+        .where(ProgrammedExercise.session_id == session_id)
         .order_by(StrengthLog.set_number)
     )
     return list(result.scalars().all())
@@ -99,12 +105,15 @@ async def get_exercise_logs_in_session(
         user_id: ID of the user
         
     Returns:
-        List[StrengthLog]: List of strength logs for the exercise, ordered by set number
+        List[StrengthLog]: List of strength logs for the exercise
     """
+    from db.models.programmed_exercise import ProgrammedExercise
+    
     result = await db.execute(
         select(StrengthLog)
+        .join(ProgrammedExercise, StrengthLog.programmed_exercise_id == ProgrammedExercise.id)
         .where(
-            StrengthLog.training_session_id == session_id,
+            ProgrammedExercise.session_id == session_id,
             StrengthLog.standard_exercise_id == standard_exercise_id,
             StrengthLog.user_id == user_id
         )
@@ -112,7 +121,7 @@ async def get_exercise_logs_in_session(
     )
     return list(result.scalars().all())
 
-async def create_strength_log(db: AsyncSession, log_data: StrengthLogCreate, user_id: int, training_session_id: int, programmed_exercise_id: int) -> StrengthLog:
+async def create_strength_log(db: AsyncSession, log_data: StrengthLogCreate, user_id: int, programmed_exercise_id: int) -> StrengthLog:
     """
     Creates a new strength log in the database.
     
@@ -120,39 +129,32 @@ async def create_strength_log(db: AsyncSession, log_data: StrengthLogCreate, use
         db: Database session
         log_data: Strength log data to create
         user_id: ID of the user creating the log
-        training_session_id: ID of the training session
         programmed_exercise_id: ID of the programmed exercise
         
     Returns:
         StrengthLog: The created strength log
         
     Raises:
-        ValueError: If the programmed exercise doesn't exist or doesn't belong to the session
+        ValueError: If the programmed exercise doesn't exist
     """
-    # Verificar que el ejercicio programado existe y pertenece a la sesión
+    # Verificar que el ejercicio programado existe
     from db.models.programmed_exercise import ProgrammedExercise
-    from db.models.exercise_block import ExerciseBlock
     
     programmed_exercise = await db.execute(
         select(ProgrammedExercise)
-        .join(ExerciseBlock)
-        .where(
-            ProgrammedExercise.id == programmed_exercise_id,
-            ExerciseBlock.session_id == training_session_id
-        )
+        .where(ProgrammedExercise.id == programmed_exercise_id)
     )
     programmed_exercise = programmed_exercise.scalar_one_or_none()
     
     if not programmed_exercise:
-        raise ValueError(f"Programmed exercise {programmed_exercise_id} not found in session {training_session_id}")
+        raise ValueError(f"Programmed exercise {programmed_exercise_id} not found")
     
     # Verificar que no existe ya un log para el mismo ejercicio programado y número de serie
     existing_log = await db.execute(
         select(StrengthLog)
         .where(
             StrengthLog.programmed_exercise_id == programmed_exercise_id,
-            StrengthLog.set_number == log_data.set_number,
-            StrengthLog.training_session_id == training_session_id
+            StrengthLog.set_number == log_data.set_number
         )
     )
     existing_log = existing_log.scalar_one_or_none()
@@ -178,7 +180,6 @@ async def create_strength_log(db: AsyncSession, log_data: StrengthLogCreate, use
     log_dict = log_data.model_dump()
     log_dict.update({
         "user_id": user_id,
-        "training_session_id": training_session_id,
         "programmed_exercise_id": programmed_exercise_id,
         "standard_exercise_id": programmed_exercise.standard_exercise_id
     })

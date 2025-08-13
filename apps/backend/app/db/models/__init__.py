@@ -6,6 +6,5 @@ from .token import TokenBlacklist
 from .training_program import TrainingProgram, ProgramType
 from .training_week import TrainingWeek
 from .training_session import TrainingSession
-from .exercise_block import ExerciseBlock, BlockType
-from .programmed_exercise import ProgrammedExercise, LoadType
+from .programmed_exercise import ProgrammedExercise, LoadType, BlockType
 from .standard_exercises import StandardExercise, StandardExerciseType, MuscleGroupEnum, EquipmentEnum

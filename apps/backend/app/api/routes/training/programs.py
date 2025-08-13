@@ -13,7 +13,6 @@ from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession
-from db.models.exercise_block import ExerciseBlock
 from db.models.programmed_exercise import ProgrammedExercise
 from db.models.strength_log import StrengthLog
 from db.schemas.training_program import (
@@ -28,8 +27,10 @@ from db.crud.training_program import (
 )
 from api.services.auth import get_current_verified_user
 from typing import cast
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/programs", response_model=TrainingProgramResponse, status_code=status.HTTP_201_CREATED)
 async def create_program(
@@ -43,7 +44,23 @@ async def create_program(
     This endpoint allows users to create a complete training program with all its components:
     weeks, sessions, exercise blocks, and programmed exercises.
     """
-    return await create_training_program(db, program_data, cast(int, current_user.id))
+    try:
+        logger.info(f"Creating training program for user {current_user.id}: {program_data.name}")
+        logger.debug(f"Program data: {program_data}")
+        
+        result = await create_training_program(db, program_data, cast(int, current_user.id))
+        
+        logger.info(f"Successfully created training program with ID: {result.id}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error creating training program for user {current_user.id}: {str(e)}")
+        logger.exception("Full exception traceback:")
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating training program: {str(e)}"
+        )
 
 @router.get("/programs", response_model=List[TrainingProgramSimpleResponse])
 async def get_programs(

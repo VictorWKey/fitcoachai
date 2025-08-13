@@ -10,15 +10,17 @@ from typing import List, Optional, Dict, Any
 from ..models.training_program import TrainingProgram
 from ..models.training_week import TrainingWeek
 from ..models.training_session import TrainingSession
-from ..models.exercise_block import ExerciseBlock
 from ..models.programmed_exercise import ProgrammedExercise
 from ..schemas.training_program import (
     TrainingProgramCreate, TrainingProgramUpdate,
     TrainingWeekCreate, TrainingSessionCreate,
-    ExerciseBlockCreate, ProgrammedExerciseCreate
+    ProgrammedExerciseCreate
 )
 from core.services.exercise_analysis import infer_series_type
 from typing import cast
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def get_training_program(db: AsyncSession, program_id: int) -> Optional[TrainingProgram]:
     """Get a training program by ID with all related data."""
@@ -27,8 +29,7 @@ async def get_training_program(db: AsyncSession, program_id: int) -> Optional[Tr
         .options(
             selectinload(TrainingProgram.training_weeks)
             .selectinload(TrainingWeek.training_sessions)
-            .selectinload(TrainingSession.exercise_blocks)
-            .selectinload(ExerciseBlock.programmed_exercises)
+            .selectinload(TrainingSession.programmed_exercises)
             .selectinload(ProgrammedExercise.standard_exercise)
         )
         .filter(TrainingProgram.id == program_id)
@@ -40,11 +41,10 @@ async def get_training_program(db: AsyncSession, program_id: int) -> Optional[Tr
     if program:
         for week in program.training_weeks:
             for session in week.training_sessions:
-                for block in session.exercise_blocks:
-                    for exercise in block.programmed_exercises:
-                        if exercise.standard_exercise:
-                            # Agregar el nombre del ejercicio estándar como exercise_name
-                            exercise.exercise_name = exercise.standard_exercise.standard_name
+                for exercise in session.programmed_exercises:
+                    if exercise.standard_exercise:
+                        # Agregar el nombre del ejercicio estándar como exercise_name
+                        exercise.exercise_name = exercise.standard_exercise.standard_name
     
     return program
 
@@ -80,8 +80,7 @@ async def get_program_summary(db: AsyncSession, program_id: int) -> Optional[Dic
     # Count total exercises
     exercises_query = (
         select(ProgrammedExercise)
-        .join(ExerciseBlock, ExerciseBlock.id == ProgrammedExercise.block_id)
-        .join(TrainingSession, TrainingSession.id == ExerciseBlock.session_id)
+        .join(TrainingSession, TrainingSession.id == ProgrammedExercise.session_id)
         .join(TrainingWeek, TrainingWeek.id == TrainingSession.week_id)
         .filter(TrainingWeek.program_id == program_id)
     )
@@ -115,48 +114,63 @@ async def create_training_program(
     user_id: int
 ) -> TrainingProgram:
     """Create a new training program with all related entities."""
-    # Create the program
-    db_program = TrainingProgram(
-        user_id=user_id,
-        name=program_data.name,
-        description=program_data.description,
-        program_type=program_data.program_type,
-        duration_weeks=program_data.duration_weeks,
-        # ...existing code...
-        is_ai_generated=program_data.is_ai_generated
-    )
-    db.add(db_program)
-    await db.flush()
-    
-    # Create weeks
-    for week_data in program_data.training_weeks:
-        db_week = await create_training_week(db, week_data, cast(int, db_program.id))
-    
-    await db.commit()
-    
-    # Reload the program with all relationships
-    result = await db.execute(
-        select(TrainingProgram)
-        .options(
-            selectinload(TrainingProgram.training_weeks)
-            .selectinload(TrainingWeek.training_sessions)
-            .selectinload(TrainingSession.exercise_blocks)
-            .selectinload(ExerciseBlock.programmed_exercises)
-            .selectinload(ProgrammedExercise.standard_exercise)
+    try:
+        logger.info(f"Starting creation of training program '{program_data.name}' for user {user_id}")
+        
+        # Create the program
+        db_program = TrainingProgram(
+            user_id=user_id,
+            name=program_data.name,
+            description=program_data.description,
+            program_type=program_data.program_type,
+            duration_weeks=program_data.duration_weeks,
+            # ...existing code...
+            is_ai_generated=program_data.is_ai_generated
         )
-        .where(TrainingProgram.id == db_program.id)
-    )
-    db_program = result.scalar_one()
-    
-    # Agregar los nombres de los ejercicios
-    for week in db_program.training_weeks:
-        for session in week.training_sessions:
-            for block in session.exercise_blocks:
-                for exercise in block.programmed_exercises:
+        db.add(db_program)
+        await db.flush()
+        
+        logger.info(f"Training program created with ID: {db_program.id}")
+        
+        # Create weeks
+        logger.info(f"Creating {len(program_data.training_weeks)} weeks")
+        for i, week_data in enumerate(program_data.training_weeks):
+            logger.info(f"Creating week {i+1}: {week_data.week_number}")
+            db_week = await create_training_week(db, week_data, cast(int, db_program.id))
+            logger.info(f"Week {i+1} created with ID: {db_week.id}")
+        
+        logger.info("Committing transaction")
+        await db.commit()
+        
+        logger.info("Reloading program with relationships")
+        # Reload the program with all relationships
+        result = await db.execute(
+            select(TrainingProgram)
+            .options(
+                selectinload(TrainingProgram.training_weeks)
+                .selectinload(TrainingWeek.training_sessions)
+                .selectinload(TrainingSession.programmed_exercises)
+                .selectinload(ProgrammedExercise.standard_exercise)
+            )
+            .where(TrainingProgram.id == db_program.id)
+        )
+        db_program = result.scalar_one()
+        
+        # Agregar los nombres de los ejercicios
+        for week in db_program.training_weeks:
+            for session in week.training_sessions:
+                for exercise in session.programmed_exercises:
                     if exercise.standard_exercise:
                         exercise.exercise_name = exercise.standard_exercise.standard_name
-    
-    return db_program
+        
+        logger.info(f"Training program creation completed successfully. Final ID: {db_program.id}")
+        return db_program
+        
+    except Exception as e:
+        logger.error(f"Error creating training program: {str(e)}")
+        logger.exception("Full exception traceback:")
+        await db.rollback()
+        raise
 
 async def create_training_week(
     db: AsyncSession, 
@@ -164,19 +178,33 @@ async def create_training_week(
     program_id: int
 ) -> TrainingWeek:
     """Create a new training week with all related entities."""
-    db_week = TrainingWeek(
-        program_id=program_id,
-        week_number=week_data.week_number,
-        description=week_data.description
-    )
-    db.add(db_week)
-    await db.flush()
-    
-    # Create sessions
-    for session_data in week_data.training_sessions:
-        db_session = await create_training_session(db, session_data, cast(int, db_week.id))
-    
-    return db_week
+    try:
+        logger.info(f"Creating training week {week_data.week_number} for program {program_id}")
+        
+        db_week = TrainingWeek(
+            program_id=program_id,
+            week_number=week_data.week_number,
+            description=week_data.description
+        )
+        db.add(db_week)
+        await db.flush()
+        
+        logger.info(f"Training week created with ID: {db_week.id}")
+        
+        # Create sessions
+        logger.info(f"Creating {len(week_data.training_sessions)} sessions for week {db_week.id}")
+        for i, session_data in enumerate(week_data.training_sessions):
+            logger.info(f"Creating session {i+1}: {session_data.name}")
+            db_session = await create_training_session(db, session_data, cast(int, db_week.id))
+            logger.info(f"Session {i+1} created with ID: {db_session.id}")
+        
+        logger.info(f"Training week {week_data.week_number} creation completed")
+        return db_week
+        
+    except Exception as e:
+        logger.error(f"Error creating training week {week_data.week_number}: {str(e)}")
+        logger.exception("Full exception traceback:")
+        raise
 
 async def create_training_session(
     db: AsyncSession, 
@@ -184,48 +212,40 @@ async def create_training_session(
     week_id: int
 ) -> TrainingSession:
     """Create a new training session with all related entities."""
-    db_session = TrainingSession(
-        week_id=week_id,
-        name=session_data.name,
-        day_of_week=session_data.day_of_week,
-        session_order=session_data.session_order,
-        description=session_data.description
-    )
-    db.add(db_session)
-    await db.flush()
-    
-    # Create blocks
-    for block_data in session_data.exercise_blocks:
-        db_block = await create_exercise_block(db, block_data, cast(int, db_session.id))
-    
-    return db_session
-
-async def create_exercise_block(
-    db: AsyncSession, 
-    block_data: ExerciseBlockCreate, 
-    session_id: int
-) -> ExerciseBlock:
-    """Create a new exercise block with all related entities."""
-    db_block = ExerciseBlock(
-        session_id=session_id,
-        name=block_data.name,
-        block_type=block_data.block_type,
-        order=block_data.order,
-        description=block_data.description
-    )
-    db.add(db_block)
-    await db.flush()
-    
-    # Create exercises
-    for exercise_data in block_data.programmed_exercises:
-        db_exercise = await create_programmed_exercise(db, exercise_data, cast(int, db_block.id))
-    
-    return db_block
+    try:
+        logger.info(f"Creating training session '{session_data.name}' for week {week_id}")
+        
+        db_session = TrainingSession(
+            week_id=week_id,
+            name=session_data.name,
+            day_of_week=session_data.day_of_week,
+            session_order=session_data.session_order,
+            description=session_data.description
+        )
+        db.add(db_session)
+        await db.flush()
+        
+        logger.info(f"Training session created with ID: {db_session.id}")
+        
+        # Create exercises directly
+        logger.info(f"Creating {len(session_data.programmed_exercises)} exercises for session {db_session.id}")
+        for i, exercise_data in enumerate(session_data.programmed_exercises):
+            logger.info(f"Creating exercise {i+1}")
+            db_exercise = await create_programmed_exercise(db, exercise_data, cast(int, db_session.id))
+            logger.info(f"Exercise {i+1} created with ID: {db_exercise.id}")
+        
+        logger.info(f"Training session '{session_data.name}' creation completed")
+        return db_session
+        
+    except Exception as e:
+        logger.error(f"Error creating training session '{session_data.name}': {str(e)}")
+        logger.exception("Full exception traceback:")
+        raise
 
 async def create_programmed_exercise(
     db: AsyncSession, 
     exercise_data: ProgrammedExerciseCreate, 
-    block_id: int
+    session_id: int
 ) -> ProgrammedExercise:
     """Create a new programmed exercise."""
     
@@ -241,8 +261,9 @@ async def create_programmed_exercise(
         )
     
     db_exercise = ProgrammedExercise(
-        block_id=block_id,
+        session_id=session_id,
         standard_exercise_id=exercise_data.standard_exercise_id,
+        block=exercise_data.block,
         tempo=exercise_data.tempo,
         sets=exercise_data.sets,
         reps=exercise_data.reps,
@@ -295,8 +316,7 @@ async def get_training_week(db: AsyncSession, week_id: int) -> Optional[Training
         select(TrainingWeek)
         .options(
             selectinload(TrainingWeek.training_sessions)
-            .selectinload(TrainingSession.exercise_blocks)
-            .selectinload(ExerciseBlock.programmed_exercises)
+            .selectinload(TrainingSession.programmed_exercises)
         )
         .filter(TrainingWeek.id == week_id)
     )
@@ -308,20 +328,10 @@ async def get_training_session(db: AsyncSession, session_id: int) -> Optional[Tr
     query = (
         select(TrainingSession)
         .options(
-            selectinload(TrainingSession.exercise_blocks)
-            .selectinload(ExerciseBlock.programmed_exercises)
+            selectinload(TrainingSession.programmed_exercises)
+            .selectinload(ProgrammedExercise.standard_exercise)
         )
         .filter(TrainingSession.id == session_id)
-    )
-    result = await db.execute(query)
-    return result.scalars().first()
-
-async def get_exercise_block(db: AsyncSession, block_id: int) -> Optional[ExerciseBlock]:
-    """Get an exercise block by ID with all related data."""
-    query = (
-        select(ExerciseBlock)
-        .options(selectinload(ExerciseBlock.programmed_exercises))
-        .filter(ExerciseBlock.id == block_id)
     )
     result = await db.execute(query)
     return result.scalars().first()
@@ -330,4 +340,5 @@ async def get_programmed_exercise(db: AsyncSession, exercise_id: int) -> Optiona
     """Get a programmed exercise by ID."""
     query = select(ProgrammedExercise).filter(ProgrammedExercise.id == exercise_id)
     result = await db.execute(query)
+    return result.scalars().first()
     return result.scalars().first() 

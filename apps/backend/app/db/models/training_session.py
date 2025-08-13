@@ -57,10 +57,10 @@ class TrainingSession(Base):
         
     Relationships:
         training_week: Relationship with the parent training week
-        exercise_blocks: Relationship with the exercise blocks that make up the session
-        strength_logs: Relationship with strength exercise logs recorded during this session
-        cardio_logs: Relationship with cardio exercise logs recorded during this session
+        programmed_exercises: Relationship with the exercises that make up the session
+        cardio_logs: Relationship with free cardio exercise logs recorded during this session
         user: Relationship with the user currently executing this session
+        strength_logs: Property that accesses strength logs through programmed exercises
     """
     __tablename__ = "training_sessions"
     
@@ -87,8 +87,7 @@ class TrainingSession(Base):
     
     # Relationships
     training_week = relationship("TrainingWeek", back_populates="training_sessions")
-    exercise_blocks = relationship("ExerciseBlock", back_populates="training_session", cascade="all, delete-orphan")
-    strength_logs = relationship("StrengthLog", back_populates="training_session", cascade="all, delete-orphan")
+    programmed_exercises = relationship("ProgrammedExercise", back_populates="training_session", cascade="all, delete-orphan")
     cardio_logs = relationship("CardioLog", back_populates="training_session", cascade="all, delete-orphan")
     user = relationship("User", back_populates="active_training_sessions")
     
@@ -112,6 +111,14 @@ class TrainingSession(Base):
     def is_session_finished(self):
         """Check if the session is finished (completed or abandoned)."""
         return self.session_status in [SessionStatus.COMPLETED, SessionStatus.ABANDONED]
+    
+    @property
+    def strength_logs(self):
+        """Get all strength logs for this session through programmed exercises."""
+        logs = []
+        for exercise in self.programmed_exercises:
+            logs.extend(exercise.exercise_logs)
+        return logs
     
     def __repr__(self):
         """String representation of the training session."""

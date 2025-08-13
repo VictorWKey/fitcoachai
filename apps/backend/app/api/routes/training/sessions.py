@@ -15,7 +15,6 @@ from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession, SessionStatus
-from db.models.exercise_block import ExerciseBlock
 from db.schemas.training_program import (
     TrainingSessionResponse, TrainingSessionCreate, TrainingSessionUpdate, TrainingSessionListResponse
 )
@@ -167,10 +166,10 @@ async def create_week_session(
     await db.commit()
     await db.refresh(new_session)
     
-    # Add exercise blocks if provided
-    if hasattr(session_data, 'exercise_blocks') and session_data.exercise_blocks:
-        for block_data in session_data.exercise_blocks:
-            # Create block implementation
+    # Add programmed exercises if provided
+    if hasattr(session_data, 'programmed_exercises') and session_data.programmed_exercises:
+        for exercise_data in session_data.programmed_exercises:
+            # Create exercise implementation
             pass
     
     return new_session

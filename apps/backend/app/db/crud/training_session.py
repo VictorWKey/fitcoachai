@@ -10,7 +10,6 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from db.models.training_session import TrainingSession, SessionStatus
-from db.models.exercise_block import ExerciseBlock
 from db.models.user import User
 
 class TrainingSessionNotFoundError(Exception):
@@ -43,7 +42,7 @@ async def get_active_session_for_user(db: AsyncSession, user_id: int) -> Optiona
             TrainingSession.session_status == SessionStatus.ACTIVE
         )
         .options(
-            selectinload(TrainingSession.exercise_blocks),
+            selectinload(TrainingSession.programmed_exercises),
             selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs)
         )
@@ -108,7 +107,7 @@ async def start_training_session(
         select(TrainingSession)
         .where(TrainingSession.id == session_id)
         .options(
-            selectinload(TrainingSession.exercise_blocks),
+            selectinload(TrainingSession.programmed_exercises),
             selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs)
         )
@@ -262,7 +261,7 @@ async def get_session_with_exercises(
         select(TrainingSession)
         .where(TrainingSession.id == session_id)
         .options(
-            selectinload(TrainingSession.exercise_blocks).selectinload(ExerciseBlock.programmed_exercises),
+            selectinload(TrainingSession.programmed_exercises),
             selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs),
             selectinload(TrainingSession.training_week)

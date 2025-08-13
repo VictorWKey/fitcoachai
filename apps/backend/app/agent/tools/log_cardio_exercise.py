@@ -68,9 +68,10 @@ async def log_cardio_exercise(
                     "Please select and start a session from your training program first."
                 )
             
-            # Create cardio log
+            # Create cardio log (as free cardio, not linked to programmed exercise)
             log_data = CardioLogCreate(
                 user_id=user_id,
+                programmed_exercise_id=None,  # Free cardio
                 training_session_id=active_session.id,
                 exercise_name=input.exercise_name,
                 cardio_type=CardioType(input.cardio_type),

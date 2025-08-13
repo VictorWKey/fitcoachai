@@ -36,8 +36,7 @@ class StrengthLog(Base):
     Attributes:
         id: Unique identifier for the exercise log
         user_id: ID of the user who performed the exercise
-        training_session_id: ID of the training session to which this log belongs
-        programmed_exercise_id: ID of the programmed exercise (if this log is part of a training program)
+        programmed_exercise_id: ID of the programmed exercise (contains session info directly)
         standard_exercise_id: ID of the standard exercise from the exercise database
         set_number: Set number within the exercise
         set_type: Type of set (strength, hypertrophy, technique)
@@ -53,16 +52,14 @@ class StrengthLog(Base):
         updated_at: Date of the last update to the record
         
     Relationships:
-        training_session: Relationship with the training session to which it belongs
         user: Relationship with the user who performed the exercise
         standard_exercise: Relationship with the standard exercise from the database
-        programmed_exercise: Relationship with the programmed exercise (if part of a program)
+        programmed_exercise: Relationship with the programmed exercise (contains session info)
     """
     __tablename__ = "strength_logs"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    training_session_id = Column(Integer, ForeignKey("training_sessions.id"), nullable=False)
     programmed_exercise_id = Column(Integer, ForeignKey("programmed_exercises.id"), nullable=False)
     standard_exercise_id = Column(Integer, ForeignKey("standard_exercise.id"), nullable=True)  # Se obtiene del ejercicio programado
     set_number = Column(Integer, nullable=False)
@@ -78,14 +75,13 @@ class StrengthLog(Base):
     exercise_date = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    training_session = relationship("TrainingSession", back_populates="strength_logs")
     user = relationship("User", back_populates="exercise_logs")
     standard_exercise = relationship("StandardExercise", back_populates="exercise_logs")
     programmed_exercise = relationship("ProgrammedExercise", back_populates="exercise_logs")
     
     __table_args__ = (
         Index("idx_user_exercise_date", "user_id", "exercise_date"),
-        UniqueConstraint("programmed_exercise_id", "set_number", "training_session_id", name="uq_strength_log_set"),
+        UniqueConstraint("programmed_exercise_id", "set_number", name="uq_strength_log_set"),
     )
     
     def __repr__(self):

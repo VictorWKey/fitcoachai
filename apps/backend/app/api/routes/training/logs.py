@@ -13,7 +13,6 @@ from db.models.user import User
 from db.models.training_session import TrainingSession, SessionStatus
 from db.models.training_week import TrainingWeek
 from db.models.training_program import TrainingProgram
-from db.models.exercise_block import ExerciseBlock
 from db.models.programmed_exercise import ProgrammedExercise
 from db.models.strength_log import StrengthLog
 from db.models.cardio_log import CardioLog
@@ -56,7 +55,7 @@ async def verify_session_access(
         TrainingProgram.id == program_id,
         TrainingProgram.user_id == user_id
     ).options(
-        selectinload(TrainingSession.exercise_blocks).selectinload(ExerciseBlock.programmed_exercises),
+        selectinload(TrainingSession.programmed_exercises),
         selectinload(TrainingSession.strength_logs),
         selectinload(TrainingSession.cardio_logs),
         selectinload(TrainingSession.training_week)
@@ -245,7 +244,7 @@ async def create_strength_log_endpoint(
         if session_status != SessionStatus.ACTIVE:
             raise HTTPException(
                 status_code=400,
-                detail="Cannot add logs to an inactive session. Please start or resume the session first."
+                detail="Cannot add logs to an inactive session."
             )
         
         # Asegurarnos de que log_data tenga el session_id y user_id correctos
@@ -258,7 +257,6 @@ async def create_strength_log_endpoint(
             db=db,
             log_data=StrengthLogCreate(**log_data_dict),
             user_id=cast(int, current_user.id),
-            training_session_id=session_id,
             programmed_exercise_id=exercise_id
         )
         
@@ -293,14 +291,23 @@ async def create_cardio_log_endpoint(
         if session_status != SessionStatus.ACTIVE:
             raise HTTPException(
                 status_code=400,
-                detail="Cannot add logs to an inactive session. Please start or resume the session first."
+                detail="Cannot add logs to an inactive session."
             )
 
         
-        # Asegurarnos de que log_data tenga el session_id y user_id correctos
+        # Asegurarnos de que log_data tenga el user_id correcto
         log_data_dict = log_data.dict()
-        log_data_dict["session_id"] = session_id
         log_data_dict["user_id"] = cast(int, current_user.id)
+        
+        # Decidir si es cardio programado o libre
+        # Si exercise_id se proporciona en la URL (distinto de 0), es cardio programado
+        if exercise_id and exercise_id > 0:
+            log_data_dict["programmed_exercise_id"] = exercise_id
+            log_data_dict["training_session_id"] = None
+        else:
+            # Es cardio libre, usar la sesión directamente
+            log_data_dict["programmed_exercise_id"] = None
+            log_data_dict["training_session_id"] = session_id
         
         # Crear el log de cardio
         new_log = await create_cardio_log(
@@ -313,6 +320,51 @@ async def create_cardio_log_endpoint(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating cardio log: {str(e)}")
+
+@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/cardio", response_model=CardioLogResponse, status_code=status.HTTP_201_CREATED)
+async def create_free_cardio_log_endpoint(
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    log_data: CardioLogCreate,
+    program_id: int = Path(..., ge=1),
+    week_id: int = Path(..., ge=1),
+    session_id: int = Path(..., ge=1)
+):
+    """
+    Create a new free cardio exercise log entry for a training session (not linked to a programmed exercise).
+    """
+    try:
+        # Verificar acceso a la sesión
+        session = await verify_session_access(db, session_id, program_id, week_id, cast(int, current_user.id))
+        
+        # Verificar que la sesión esté activa
+        stmt = select(TrainingSession.session_status).where(TrainingSession.id == session_id)
+        result = await db.execute(stmt)
+        session_status = result.scalar_one()
+        
+        if session_status != SessionStatus.ACTIVE:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot add logs to an inactive session."
+            )
+
+        # Asegurarnos de que log_data tenga el user_id correcto para cardio libre
+        log_data_dict = log_data.dict()
+        log_data_dict["user_id"] = cast(int, current_user.id)
+        log_data_dict["programmed_exercise_id"] = None
+        log_data_dict["training_session_id"] = session_id
+        
+        # Crear el log de cardio libre
+        new_log = await create_cardio_log(
+            db=db,
+            log_data=CardioLogCreate(**log_data_dict)
+        )
+        
+        return new_log
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating free cardio log: {str(e)}")
 
 @router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/strength/{log_id}", response_model=StrengthLogResponse)
 async def update_strength_log_endpoint(

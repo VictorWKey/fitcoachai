@@ -34,13 +34,18 @@ class CardioType(enum.Enum):
 
 class CardioLog(Base):
     """
-    Model for recording cardio training sessions as complementary work during training sessions.
+    Model for recording cardio training sessions.
+    
+    Can be either:
+    - Programmed cardio: linked to a programmed_exercise_id (session derived directly from programmed_exercise)
+    - Free cardio: linked directly to training_session_id
     """
     __tablename__ = "cardio_logs"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    training_session_id = Column(Integer, ForeignKey("training_sessions.id"), nullable=False)
+    programmed_exercise_id = Column(Integer, ForeignKey("programmed_exercises.id"), nullable=True)  # Para cardio programado
+    training_session_id = Column(Integer, ForeignKey("training_sessions.id"), nullable=True)  # Para cardio libre (sin programar)
     exercise_name = Column(String, nullable=False)  # Treadmill, bike, elliptical, rowing, etc.
     cardio_type = Column(Enum(CardioType), nullable=False)
     total_duration_seconds = Column(Integer, nullable=False)
@@ -60,6 +65,7 @@ class CardioLog(Base):
 
     training_session = relationship("TrainingSession", back_populates="cardio_logs")
     user = relationship("User", back_populates="cardio_logs")
+    programmed_exercise = relationship("ProgrammedExercise", back_populates="cardio_logs")
     
     __table_args__ = (
         Index("idx_cardio_user_date", "user_id", "exercise_date"),
