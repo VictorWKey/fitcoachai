@@ -81,18 +81,16 @@ async def get_programs(
 async def get_program(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    include_details: bool = Query(False, description="Include all program details including weeks, sessions, exercises")
+    program_id: int = Path(..., ge=1)
 ):
     """
     Get a specific training program.
     
-    Returns the complete training program structure. Use include_details=False to get only summary.
+    Returns the complete training program structure with all weeks, sessions, and exercises.
+    This ensures compatibility with the POST response format.
     """
-    if include_details:
-        program = await get_training_program(db, program_id)
-    else:
-        program = await get_training_program_simple(db, program_id)
+    # Always use get_training_program to load all related data for TrainingProgramResponse
+    program = await get_training_program(db, program_id)
     
     if not program:
         raise HTTPException(
@@ -167,7 +165,7 @@ async def update_program(
 
 @router.put("/programs/{program_id}", response_model=TrainingProgramResponse)
 async def replace_program_complete(
-    program_data: TrainingProgramCreate,
+    program_data: TrainingProgramUpdate,
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     program_id: int = Path(..., ge=1)
@@ -207,17 +205,17 @@ async def replace_program_complete(
             TrainingWeek.program_id == program_id
         ).order_by(TrainingWeek.week_number)
         current_weeks_result = await db.execute(current_weeks_stmt)
-        current_weeks = {week.week_number: week for week in current_weeks_result.scalars().all()}
+        current_weeks = {week.id: week for week in current_weeks_result.scalars().all()}
         
         # Process weeks from new data
-        new_week_numbers = set()
+        new_week_ids = set()
         if program_data.training_weeks:
             for week_data in program_data.training_weeks:
-                new_week_numbers.add(week_data.week_number)
-                
-                if week_data.week_number in current_weeks:
+                if week_data.id and week_data.id in current_weeks:
                     # Update existing week
-                    existing_week = current_weeks[week_data.week_number]
+                    new_week_ids.add(week_data.id)
+                    existing_week = current_weeks[week_data.id]
+                    existing_week.week_number = week_data.week_number
                     existing_week.description = week_data.description
                     await _update_week_sessions(db, existing_week.id, week_data.training_sessions or [])
                 else:
@@ -229,12 +227,13 @@ async def replace_program_complete(
                     )
                     db.add(new_week)
                     await db.flush()  # Get the ID
+                    new_week_ids.add(new_week.id)
                     await _update_week_sessions(db, new_week.id, week_data.training_sessions or [])
         
         # Delete weeks that are no longer in the new data
-        weeks_to_delete = set(current_weeks.keys()) - new_week_numbers
-        for week_number in weeks_to_delete:
-            await db.delete(current_weeks[week_number])
+        weeks_to_delete = set(current_weeks.keys()) - new_week_ids
+        for week_id in weeks_to_delete:
+            await db.delete(current_weeks[week_id])
         
         await db.commit()
         
@@ -258,6 +257,8 @@ async def replace_program_complete(
 async def _update_week_sessions(db: AsyncSession, week_id: int, sessions_data: List):
     """
     Update sessions for a week, maintaining existing IDs where possible.
+    Uses ID from sessions_data to determine if updating existing or creating new.
+    Properly handles session ordering by respecting the order in the provided data.
     """
     from db.models.training_session import TrainingSession
     from db.models.programmed_exercise import ProgrammedExercise
@@ -267,18 +268,24 @@ async def _update_week_sessions(db: AsyncSession, week_id: int, sessions_data: L
         TrainingSession.week_id == week_id
     ).order_by(TrainingSession.session_order)
     current_sessions_result = await db.execute(current_sessions_stmt)
-    current_sessions = {session.session_order: session for session in current_sessions_result.scalars().all()}
+    current_sessions = {session.id: session for session in current_sessions_result.scalars().all()}
     
-    # Process sessions from new data
-    new_session_orders = set()
-    for session_data in sessions_data:
-        new_session_orders.add(session_data.session_order)
+    # Process sessions from new data and assign proper ordering
+    new_session_ids = set()
+    
+    # Process sessions in the order they appear in the data
+    # This ensures the session_order reflects the desired position
+    for index, session_data in enumerate(sessions_data):
+        # Set session_order based on position in the array, but respect provided session_order if available
+        desired_order = session_data.session_order if hasattr(session_data, 'session_order') and session_data.session_order is not None else index
         
-        if session_data.session_order in current_sessions:
+        if session_data.id and session_data.id in current_sessions:
             # Update existing session
-            existing_session = current_sessions[session_data.session_order]
+            new_session_ids.add(session_data.id)
+            existing_session = current_sessions[session_data.id]
             existing_session.name = session_data.name
             existing_session.day_of_week = session_data.day_of_week
+            existing_session.session_order = desired_order  # Use calculated order
             existing_session.description = session_data.description
             await _update_session_exercises(db, existing_session.id, session_data.programmed_exercises or [])
         else:
@@ -287,39 +294,52 @@ async def _update_week_sessions(db: AsyncSession, week_id: int, sessions_data: L
                 week_id=week_id,
                 name=session_data.name,
                 day_of_week=session_data.day_of_week,
-                session_order=session_data.session_order,
+                session_order=desired_order,  # Use calculated order
                 description=session_data.description
             )
             db.add(new_session)
             await db.flush()  # Get the ID
+            new_session_ids.add(new_session.id)
             await _update_session_exercises(db, new_session.id, session_data.programmed_exercises or [])
     
     # Delete sessions that are no longer in the new data
-    sessions_to_delete = set(current_sessions.keys()) - new_session_orders
-    for session_order in sessions_to_delete:
-        await db.delete(current_sessions[session_order])
+    sessions_to_delete = set(current_sessions.keys()) - new_session_ids
+    for session_id in sessions_to_delete:
+        await db.delete(current_sessions[session_id])
 
 async def _update_session_exercises(db: AsyncSession, session_id: int, exercises_data: List):
     """
     Update exercises for a session, maintaining existing IDs where possible.
+    Uses ID from exercises_data to determine if updating existing or creating new.
+    Properly handles exercise ordering by respecting the order in the provided data.
     """
     # Get current exercises
     current_exercises_stmt = select(ProgrammedExercise).where(
         ProgrammedExercise.session_id == session_id
     ).order_by(ProgrammedExercise.exercise_order)
     current_exercises_result = await db.execute(current_exercises_stmt)
-    current_exercises = {exercise.exercise_order: exercise for exercise in current_exercises_result.scalars().all()}
+    current_exercises = {exercise.id: exercise for exercise in current_exercises_result.scalars().all()}
     
-    # Process exercises from new data
-    new_exercise_orders = set()
-    for exercise_data in exercises_data:
-        new_exercise_orders.add(exercise_data.exercise_order)
+    # Process exercises from new data and assign proper ordering
+    new_exercise_ids = set()
+    
+    # Process exercises in the order they appear in the data
+    # This ensures the exercise_order reflects the desired position
+    for index, exercise_data in enumerate(exercises_data):
+        # Set exercise_order based on position in the array
+        desired_order = index
         
-        if exercise_data.exercise_order in current_exercises:
+        if exercise_data.id and exercise_data.id in current_exercises:
             # Update existing exercise
-            existing_exercise = current_exercises[exercise_data.exercise_order]
-            existing_exercise.standard_exercise_id = exercise_data.standard_exercise_id
+            new_exercise_ids.add(exercise_data.id)
+            existing_exercise = current_exercises[exercise_data.id]
+            
+            # Only update standard_exercise_id if provided, otherwise keep existing
+            if hasattr(exercise_data, 'standard_exercise_id') and exercise_data.standard_exercise_id is not None:
+                existing_exercise.standard_exercise_id = exercise_data.standard_exercise_id
+            
             existing_exercise.block = exercise_data.block
+            existing_exercise.exercise_order = desired_order  # Use position in array
             existing_exercise.tempo = exercise_data.tempo
             existing_exercise.sets = exercise_data.sets
             existing_exercise.reps = exercise_data.reps
@@ -331,12 +351,18 @@ async def _update_session_exercises(db: AsyncSession, session_id: int, exercises
             existing_exercise.sets_type = exercise_data.sets_type
             existing_exercise.notes = exercise_data.notes
         else:
-            # Create new exercise
+            # Create new exercise - standard_exercise_id is required for new exercises
+            if not hasattr(exercise_data, 'standard_exercise_id') or exercise_data.standard_exercise_id is None:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"standard_exercise_id is required for new exercises"
+                )
+            
             new_exercise = ProgrammedExercise(
                 session_id=session_id,
                 standard_exercise_id=exercise_data.standard_exercise_id,
                 block=exercise_data.block,
-                exercise_order=exercise_data.exercise_order,
+                exercise_order=desired_order,  # Use position in array
                 tempo=exercise_data.tempo,
                 sets=exercise_data.sets,
                 reps=exercise_data.reps,
@@ -349,11 +375,13 @@ async def _update_session_exercises(db: AsyncSession, session_id: int, exercises
                 notes=exercise_data.notes
             )
             db.add(new_exercise)
+            await db.flush()  # Get the ID
+            new_exercise_ids.add(new_exercise.id)
     
     # Delete exercises that are no longer in the new data
-    exercises_to_delete = set(current_exercises.keys()) - new_exercise_orders
-    for exercise_order in exercises_to_delete:
-        await db.delete(current_exercises[exercise_order])
+    exercises_to_delete = set(current_exercises.keys()) - new_exercise_ids
+    for exercise_id in exercises_to_delete:
+        await db.delete(current_exercises[exercise_id])
 
 @router.delete("/programs/{program_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_program(
