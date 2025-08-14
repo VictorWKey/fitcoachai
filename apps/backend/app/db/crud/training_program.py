@@ -28,19 +28,28 @@ async def get_training_program(db: AsyncSession, program_id: int) -> Optional[Tr
         select(TrainingProgram)
         .options(
             selectinload(TrainingProgram.training_weeks)
-            .selectinload(TrainingWeek.training_sessions)
-            .selectinload(TrainingSession.programmed_exercises)
-            .selectinload(ProgrammedExercise.standard_exercise)
+            .options(selectinload(TrainingWeek.training_sessions)
+                    .options(selectinload(TrainingSession.programmed_exercises)
+                            .selectinload(ProgrammedExercise.standard_exercise)))
         )
         .filter(TrainingProgram.id == program_id)
     )
     result = await db.execute(query)
     program = result.scalars().first()
     
-    # Si encontramos el programa, agregar los nombres de los ejercicios
+    # Si encontramos el programa, agregar los nombres de los ejercicios y ordenar correctamente
     if program:
+        # Ordenar las semanas por week_number
+        program.training_weeks.sort(key=lambda w: w.week_number)
+        
         for week in program.training_weeks:
+            # Ordenar las sesiones por session_order
+            week.training_sessions.sort(key=lambda s: s.session_order)
+            
             for session in week.training_sessions:
+                # Ordenar los ejercicios por exercise_order
+                session.programmed_exercises.sort(key=lambda e: e.exercise_order or 0)
+                
                 for exercise in session.programmed_exercises:
                     if exercise.standard_exercise:
                         # Agregar el nombre del ejercicio estándar como exercise_name

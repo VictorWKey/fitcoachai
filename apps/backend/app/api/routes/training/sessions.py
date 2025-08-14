@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from typing import List, Annotated, Optional
-from datetime import datetime
 from pydantic import BaseModel
 
 from db.session import get_db
@@ -17,22 +16,18 @@ from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession, SessionStatus
 from db.models.programmed_exercise import ProgrammedExercise
 from db.schemas.training_program import (
-    TrainingSessionResponse, TrainingSessionCreate, TrainingSessionUpdate, TrainingSessionListResponse
+    TrainingSessionResponse, TrainingSessionListResponse
 )
 from db.crud.training_session import (
     get_session_with_exercises,
     start_training_session,
     finish_training_session,
-    abandon_session,
-    get_inactive_sessions,
-    get_long_running_sessions,
     get_active_session_for_user,
     TrainingSessionNotFoundError,
     SessionAlreadyActiveError,
     NoActiveSessionError
 )
 from api.services.auth import get_current_verified_user
-from typing import cast
 
 router = APIRouter()
 
@@ -125,168 +120,6 @@ async def get_week_session(
         )
     
     return session
-
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions", response_model=TrainingSessionResponse, status_code=status.HTTP_201_CREATED)
-async def create_week_session(
-    session_data: TrainingSessionCreate,
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1)
-):
-    """
-    Create a new session for a training week.
-    
-    This endpoint allows users to add a new session to an existing training week.
-    """
-    # Verify week exists and user has access to the program
-    stmt = select(TrainingWeek).join(TrainingProgram).where(
-        TrainingWeek.id == week_id,
-        TrainingWeek.program_id == program_id,
-        TrainingProgram.user_id == current_user.id
-    )
-    result = await db.execute(stmt)
-    week = result.scalar_one_or_none()
-    
-    if not week:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training week not found or access denied"
-        )
-    
-    # Create the new session
-    new_session = TrainingSession(
-        week_id=week_id,
-        name=session_data.name,
-        day_of_week=session_data.day_of_week,
-        session_order=session_data.session_order,
-        description=session_data.description
-    )
-    
-    db.add(new_session)
-    await db.commit()
-    await db.refresh(new_session)
-    
-    # Add programmed exercises if provided
-    if hasattr(session_data, 'programmed_exercises') and session_data.programmed_exercises:
-        for exercise_data in session_data.programmed_exercises:
-            # Create exercise implementation
-            pass
-    
-    return new_session
-
-@router.patch("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}", response_model=TrainingSessionResponse)
-async def update_week_session(
-    session_data: TrainingSessionUpdate,
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Update a session in a training week.
-    
-    This endpoint allows users to update the properties of a training session.
-    """
-    # Verify week exists and user has access to the program
-    stmt = select(TrainingWeek).join(TrainingProgram).where(
-        TrainingWeek.id == week_id,
-        TrainingWeek.program_id == program_id,
-        TrainingProgram.user_id == current_user.id
-    )
-    result = await db.execute(stmt)
-    week = result.scalar_one_or_none()
-    
-    if not week:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training week not found or access denied"
-        )
-    
-    # Get the session to update
-    stmt = select(TrainingSession).where(
-        TrainingSession.id == session_id,
-        TrainingSession.week_id == week_id
-    )
-    result = await db.execute(stmt)
-    session = result.scalar_one_or_none()
-    
-    if not session:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found"
-        )
-    
-    # Update session fields
-    if hasattr(session_data, 'name') and session_data.name is not None:
-        session.name = session_data.name
-    if hasattr(session_data, 'day_of_week') and session_data.day_of_week is not None:
-        session.day_of_week = session_data.day_of_week
-    if hasattr(session_data, 'session_order') and session_data.session_order is not None:
-        session.session_order = session_data.session_order
-    if hasattr(session_data, 'description') and session_data.description is not None:
-        session.description = session_data.description
-    
-    await db.commit()
-    
-    # Re-fetch the session with programmed_exercises loaded to avoid MissingGreenlet error
-    stmt = select(TrainingSession).options(
-        selectinload(TrainingSession.programmed_exercises.order_by(ProgrammedExercise.exercise_order))
-        .selectinload(ProgrammedExercise.standard_exercise)
-    ).where(TrainingSession.id == session_id)
-    result = await db.execute(stmt)
-    updated_session = result.scalar_one()
-    
-    return updated_session
-
-@router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_week_session(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Delete a session from a training week.
-    
-    This endpoint allows users to remove a session from a training week.
-    """
-    # Verify week exists and user has access to the program
-    stmt = select(TrainingWeek).join(TrainingProgram).where(
-        TrainingWeek.id == week_id,
-        TrainingWeek.program_id == program_id,
-        TrainingProgram.user_id == current_user.id
-    )
-    result = await db.execute(stmt)
-    week = result.scalar_one_or_none()
-    
-    if not week:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training week not found or access denied"
-        )
-    
-    # Get the session to delete
-    stmt = select(TrainingSession).where(
-        TrainingSession.id == session_id,
-        TrainingSession.week_id == week_id
-    )
-    result = await db.execute(stmt)
-    session = result.scalar_one_or_none()
-    
-    if not session:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training session not found"
-        )
-    
-    # Delete the session
-    await db.delete(session)
-    await db.commit()
-    
-    return None
 
 # ============================================================================
 # SESSION STATUS MANAGEMENT
@@ -411,8 +244,3 @@ async def get_active_session(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving active session: {str(e)}")
-
-# ============================================================================
-# ADMIN/MAINTENANCE ENDPOINTS  
-# ============================================================================
-# Auto-pause functionality removed - sessions now use frontend timers
