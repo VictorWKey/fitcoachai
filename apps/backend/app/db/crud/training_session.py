@@ -43,7 +43,6 @@ async def get_active_session_for_user(db: AsyncSession, user_id: int) -> Optiona
         )
         .options(
             selectinload(TrainingSession.programmed_exercises),
-            selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs)
         )
     )
@@ -108,7 +107,6 @@ async def start_training_session(
         .where(TrainingSession.id == session_id)
         .options(
             selectinload(TrainingSession.programmed_exercises),
-            selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs)
         )
     )
@@ -200,7 +198,6 @@ async def finish_training_session(
         select(TrainingSession)
         .where(TrainingSession.id == target_session_id)
         .options(
-            selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs)
         )
     )
@@ -225,15 +222,14 @@ async def get_user_session_history(
     Returns:
         List of completed training sessions
     """
+    # Get sessions that were completed and had the user assigned during execution
     result = await db.execute(
         select(TrainingSession)
         .where(
             TrainingSession.session_status == SessionStatus.COMPLETED
         )
-        .join(TrainingSession.strength_logs)
-        .filter(TrainingSession.strength_logs.any(user_id=user_id))
         .options(
-            selectinload(TrainingSession.strength_logs),
+            selectinload(TrainingSession.programmed_exercises),
             selectinload(TrainingSession.cardio_logs)
         )
         .order_by(TrainingSession.session_end_time.desc())
@@ -262,7 +258,6 @@ async def get_session_with_exercises(
         .where(TrainingSession.id == session_id)
         .options(
             selectinload(TrainingSession.programmed_exercises),
-            selectinload(TrainingSession.strength_logs),
             selectinload(TrainingSession.cardio_logs),
             selectinload(TrainingSession.training_week)
         )

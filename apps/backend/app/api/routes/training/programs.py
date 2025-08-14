@@ -176,18 +176,37 @@ async def delete_program(
     
     This endpoint allows users to delete a training program.
     """
-    program = await get_training_program_simple(db, program_id)
-    if not program:
+    try:
+        program = await get_training_program_simple(db, program_id)
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Training program not found"
+            )
+        
+        if cast(bool, program.user_id != current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to delete this training program"
+            )
+        
+        success = await delete_training_program(db, program_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete training program"
+            )
+        
+        return None
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions as they are already properly formatted
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting training program {program_id}: {str(e)}")
+        logger.exception("Full exception traceback:")
+        await db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Training program not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting training program: {str(e)}"
         )
-    
-    if cast(bool, program.user_id != current_user.id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this training program"
-        )
-    
-    await delete_training_program(db, program_id)
-    return None

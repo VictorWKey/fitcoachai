@@ -15,6 +15,7 @@ from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession, SessionStatus
+from db.models.programmed_exercise import ProgrammedExercise
 from db.schemas.training_program import (
     TrainingSessionResponse, TrainingSessionCreate, TrainingSessionUpdate, TrainingSessionListResponse
 )
@@ -218,19 +219,26 @@ async def update_week_session(
         )
     
     # Update session fields
-    if session_data.name is not None:
+    if hasattr(session_data, 'name') and session_data.name is not None:
         session.name = session_data.name
-    if session_data.day_of_week is not None:
+    if hasattr(session_data, 'day_of_week') and session_data.day_of_week is not None:
         session.day_of_week = session_data.day_of_week
-    if session_data.session_order is not None:
+    if hasattr(session_data, 'session_order') and session_data.session_order is not None:
         session.session_order = session_data.session_order
-    if session_data.description is not None:
+    if hasattr(session_data, 'description') and session_data.description is not None:
         session.description = session_data.description
     
     await db.commit()
-    await db.refresh(session)
     
-    return session
+    # Re-fetch the session with programmed_exercises loaded to avoid MissingGreenlet error
+    stmt = select(TrainingSession).options(
+        selectinload(TrainingSession.programmed_exercises.order_by(ProgrammedExercise.exercise_order))
+        .selectinload(ProgrammedExercise.standard_exercise)
+    ).where(TrainingSession.id == session_id)
+    result = await db.execute(stmt)
+    updated_session = result.scalar_one()
+    
+    return updated_session
 
 @router.delete("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_week_session(
@@ -376,50 +384,6 @@ async def finish_session(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error finishing session: {str(e)}")
-
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/abandon")
-async def abandon_training_session(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Abandon an active training session.
-    """
-    try:
-        # Verify session belongs to the specified week and program
-        stmt = select(TrainingSession).join(
-            TrainingWeek, TrainingSession.week_id == TrainingWeek.id
-        ).join(
-            TrainingProgram, TrainingWeek.program_id == TrainingProgram.id
-        ).where(
-            TrainingSession.id == session_id,
-            TrainingWeek.id == week_id,
-            TrainingProgram.id == program_id,
-            TrainingProgram.user_id == current_user.id
-        )
-        result = await db.execute(stmt)
-        session_check = result.scalar_one_or_none()
-        
-        if not session_check:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Training session not found or does not belong to the specified week/program"
-            )
-            
-        session = await abandon_session(db, current_user.id, session_id)
-        return {
-            "message": "Training session abandoned successfully",
-            "session": {
-                "id": session.id,
-                "name": session.name,
-                "status": session.session_status.value
-            }
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error abandoning session: {str(e)}")
 
 @router.get("/active-session")
 async def get_active_session(

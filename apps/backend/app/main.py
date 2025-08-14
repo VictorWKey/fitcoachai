@@ -28,9 +28,7 @@ async def lifespan(app: FastAPI):
         app: The FastAPI instance
     """
     # Uncomment when using Ollama locally
-    # await wait_for_server_and_load_model()
-    
-    await start_session_monitor()
+    # await wait_for_server_and_load_model
     
     await init_db()
     
@@ -68,9 +66,6 @@ async def lifespan(app: FastAPI):
                 
             await stop_session_monitor()
     
-
-
-
 app = FastAPI(
     lifespan=lifespan,
     title=settings.APP_TITLE,

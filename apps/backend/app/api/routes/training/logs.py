@@ -16,6 +16,7 @@ from db.models.training_program import TrainingProgram
 from db.models.programmed_exercise import ProgrammedExercise
 from db.models.strength_log import StrengthLog
 from db.models.cardio_log import CardioLog
+from db.models.standard_exercises import StandardExercise
 from db.schemas.strength_log import StrengthLogCreate, StrengthLogUpdate, StrengthLog as StrengthLogResponse
 from db.schemas.cardio_log import CardioLogCreate, CardioLogUpdate, CardioLog as CardioLogResponse
 
@@ -56,8 +57,6 @@ async def verify_session_access(
         TrainingProgram.user_id == user_id
     ).options(
         selectinload(TrainingSession.programmed_exercises),
-        selectinload(TrainingSession.strength_logs),
-        selectinload(TrainingSession.cardio_logs),
         selectinload(TrainingSession.training_week)
     )
     
@@ -95,7 +94,7 @@ async def verify_session_access(
         
     return session
 
-@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs", response_model=Dict[str, List[Any]])
+@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs", response_model=List[Dict[str, Any]])
 async def get_all_session_logs_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -117,75 +116,98 @@ async def get_all_session_logs_endpoint(
         session_status = result.scalar_one()
         
         # Get all logs for the session
-        logs = await get_all_session_logs(db, session_id)
+        # First, get all programmed exercises for this session in order
         
-        return logs
+        programmed_exercises_stmt = select(ProgrammedExercise).options(
+            selectinload(ProgrammedExercise.standard_exercise)
+        ).where(
+            ProgrammedExercise.session_id == session_id
+        ).order_by(ProgrammedExercise.id)
+        
+        programmed_exercises_result = await db.execute(programmed_exercises_stmt)
+        programmed_exercises = list(programmed_exercises_result.scalars().all())
+        
+        # Build the response with exercises in programmed order
+        exercises_with_logs = []
+        
+        for programmed_exercise in programmed_exercises:
+            # Get strength logs for this specific programmed exercise, ordered by set number
+            strength_logs_stmt = select(StrengthLog).where(
+                StrengthLog.programmed_exercise_id == programmed_exercise.id
+            ).order_by(StrengthLog.set_number)
+            
+            strength_logs_result = await db.execute(strength_logs_stmt)
+            strength_logs = list(strength_logs_result.scalars().all())
+            
+            # Get cardio logs for this specific programmed exercise, ordered by date
+            cardio_logs_stmt = select(CardioLog).where(
+                CardioLog.programmed_exercise_id == programmed_exercise.id
+            ).order_by(CardioLog.exercise_date)
+            
+            cardio_logs_result = await db.execute(cardio_logs_stmt)
+            cardio_logs = list(cardio_logs_result.scalars().all())
+            
+            # Convert ORM objects to dictionaries that match the schema
+            strength_log_responses = []
+            for log in strength_logs:
+                log_dict = {
+                    "id": log.id,
+                    "user_id": log.user_id,
+                    "programmed_exercise_id": log.programmed_exercise_id,
+                    "set_number": log.set_number,
+                    "set_type": log.set_type,
+                    "repetitions_done": log.repetitions_done,
+                    "used_weight": log.used_weight,
+                    "used_weight_unit": log.used_weight_unit,
+                    "perceived_rir": log.perceived_rir,
+                    "perceived_rpe": log.perceived_rpe,
+                    "tempo": log.tempo,
+                    "rest_time_seconds": log.rest_time_seconds,
+                    "notes": log.notes,
+                    "exercise_date": log.exercise_date,
+                    "updated_at": log.updated_at
+                }
+                strength_log_responses.append(log_dict)
+            
+            cardio_log_responses = []
+            for log in cardio_logs:
+                log_dict = {
+                    "id": log.id,
+                    "user_id": log.user_id,
+                    "programmed_exercise_id": log.programmed_exercise_id,
+                    "training_session_id": log.training_session_id,
+                    "exercise_name": log.exercise_name,
+                    "cardio_type": log.cardio_type,
+                    "total_duration_seconds": log.total_duration_seconds,
+                    "distance": log.distance,
+                    "distance_unit": log.distance_unit,
+                    "calories_burned": log.calories_burned,
+                    "avg_heart_rate": log.avg_heart_rate,
+                    "avg_rpe": log.avg_rpe,
+                    "intensity_level": log.intensity_level,
+                    "incline_level": log.incline_level,
+                    "notes": log.notes,
+                    "exercise_date": log.exercise_date,
+                    "updated_at": log.updated_at
+                }
+                cardio_log_responses.append(log_dict)
+            
+            # Combine logs - strength logs first, then cardio logs
+            all_exercise_logs = strength_log_responses + cardio_log_responses
+            
+            exercises_with_logs.append({
+                "exercise_name": programmed_exercise.standard_exercise.standard_name if programmed_exercise.standard_exercise else "Unknown Exercise",
+                "exercise_type": programmed_exercise.standard_exercise.type.value if programmed_exercise.standard_exercise else None,
+                "programmed_exercise_id": programmed_exercise.id,
+                "logs": all_exercise_logs
+            })
+        
+        return exercises_with_logs
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving session logs: {str(e)}")
 
-@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/strength", response_model=List[StrengthLogResponse])
-async def get_session_strength_logs_endpoint(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Get all strength exercise logs for a specific training session.
-    """
-    try:
-        # Verificar acceso a la sesión
-        session = await verify_session_access(db, session_id, program_id, week_id, cast(int, current_user.id))
-        
-        # Update last activity if session is active
-        stmt = select(TrainingSession.session_status).where(TrainingSession.id == session_id)
-        result = await db.execute(stmt)
-        session_status = result.scalar_one()
-        
-
-        
-        # Get strength logs for the session
-        logs = await get_session_strength_logs(db, session_id)
-        
-        return logs
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving strength logs: {str(e)}")
-
-@router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/cardio", response_model=List[CardioLogResponse])
-async def get_session_cardio_logs_endpoint(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Get all cardio exercise logs for a specific training session.
-    """
-    try:
-        # Verificar acceso a la sesión
-        session = await verify_session_access(db, session_id, program_id, week_id, cast(int, current_user.id))
-        
-        # Update last activity if session is active
-        stmt = select(TrainingSession.session_status).where(TrainingSession.id == session_id)
-        result = await db.execute(stmt)
-        session_status = result.scalar_one()
-        
-
-        
-        # Get cardio logs for the session
-        logs = await get_session_cardio_logs(db, session_id)
-        
-        return logs
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving cardio logs: {str(e)}")
 
 @router.get("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs", response_model=List[Union[StrengthLogResponse, CardioLogResponse]])
 async def get_exercise_logs_in_session_endpoint(
@@ -248,7 +270,7 @@ async def create_strength_log_endpoint(
             )
         
         # Asegurarnos de que log_data tenga el session_id y user_id correctos
-        log_data_dict = log_data.dict()
+        log_data_dict = log_data.model_dump()
         log_data_dict["session_id"] = session_id
         log_data_dict["user_id"] = cast(int, current_user.id)
         
@@ -274,7 +296,7 @@ async def create_cardio_log_endpoint(
     program_id: int = Path(..., ge=1),
     week_id: int = Path(..., ge=1),
     session_id: int = Path(..., ge=1),
-    exercise_id: int = Path(..., ge=1)
+    exercise_id: int = Path(..., ge=0)  # Cambiado para permitir 0 para cardio libre
 ):
     """
     Create a new cardio exercise log entry for a training session.
@@ -296,7 +318,7 @@ async def create_cardio_log_endpoint(
 
         
         # Asegurarnos de que log_data tenga el user_id correcto
-        log_data_dict = log_data.dict()
+        log_data_dict = log_data.model_dump()
         log_data_dict["user_id"] = cast(int, current_user.id)
         
         # Decidir si es cardio programado o libre
@@ -321,51 +343,6 @@ async def create_cardio_log_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating cardio log: {str(e)}")
 
-@router.post("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/logs/cardio", response_model=CardioLogResponse, status_code=status.HTTP_201_CREATED)
-async def create_free_cardio_log_endpoint(
-    current_user: Annotated[User, Depends(get_current_verified_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    log_data: CardioLogCreate,
-    program_id: int = Path(..., ge=1),
-    week_id: int = Path(..., ge=1),
-    session_id: int = Path(..., ge=1)
-):
-    """
-    Create a new free cardio exercise log entry for a training session (not linked to a programmed exercise).
-    """
-    try:
-        # Verificar acceso a la sesión
-        session = await verify_session_access(db, session_id, program_id, week_id, cast(int, current_user.id))
-        
-        # Verificar que la sesión esté activa
-        stmt = select(TrainingSession.session_status).where(TrainingSession.id == session_id)
-        result = await db.execute(stmt)
-        session_status = result.scalar_one()
-        
-        if session_status != SessionStatus.ACTIVE:
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot add logs to an inactive session."
-            )
-
-        # Asegurarnos de que log_data tenga el user_id correcto para cardio libre
-        log_data_dict = log_data.dict()
-        log_data_dict["user_id"] = cast(int, current_user.id)
-        log_data_dict["programmed_exercise_id"] = None
-        log_data_dict["training_session_id"] = session_id
-        
-        # Crear el log de cardio libre
-        new_log = await create_cardio_log(
-            db=db,
-            log_data=CardioLogCreate(**log_data_dict)
-        )
-        
-        return new_log
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating free cardio log: {str(e)}")
-
 @router.put("/programs/{program_id}/weeks/{week_id}/sessions/{session_id}/exercises/{exercise_id}/logs/strength/{log_id}", response_model=StrengthLogResponse)
 async def update_strength_log_endpoint(
     current_user: Annotated[User, Depends(get_current_verified_user)],
@@ -387,26 +364,22 @@ async def update_strength_log_endpoint(
             raise HTTPException(status_code=404, detail="Strength log not found")
         
         # Verificar que el usuario es dueño del log
-        user_id_column = existing_log.user_id
-        stmt = select(user_id_column)
-        result = await db.execute(stmt)
-        log_user_id = result.scalar_one()
-        
-        if log_user_id != cast(int, current_user.id):
+        if existing_log.user_id != cast(int, current_user.id):
             raise HTTPException(status_code=403, detail="Access denied to this log")
         
         # Verificar que la sesión pertenece al programa y semana correctos
         await verify_session_access(db, session_id, program_id, week_id, cast(int, current_user.id))
         
-        # Verificar que el log pertenece a la sesión
-        session_id_column = existing_log.session_id
-        stmt = select(session_id_column)
+        # Verificar que el log pertenece al ejercicio programado correcto en esta sesión
+        # Necesitamos verificar via el programmed_exercise
+        stmt = select(ProgrammedExercise.session_id).where(
+            ProgrammedExercise.id == existing_log.programmed_exercise_id
+        )
         result = await db.execute(stmt)
-        log_session_id = result.scalar_one()
+        log_session_id = result.scalar_one_or_none()
         
         if log_session_id != session_id:
             raise HTTPException(status_code=400, detail="This log does not belong to the specified session")
-        
         
         # Actualizar el log
         updated_log = await update_strength_log(db, log_id, log_data)
@@ -438,22 +411,24 @@ async def update_cardio_log_endpoint(
             raise HTTPException(status_code=404, detail="Cardio log not found")
         
         # Verificar que el usuario es dueño del log
-        user_id_column = existing_log.user_id
-        stmt = select(user_id_column)
-        result = await db.execute(stmt)
-        log_user_id = result.scalar_one()
-        
-        if log_user_id != cast(int, current_user.id):
+        if existing_log.user_id != cast(int, current_user.id):
             raise HTTPException(status_code=403, detail="Access denied to this log")
         
         # Verificar que la sesión pertenece al programa y semana correctos
         await verify_session_access(db, session_id, program_id, week_id, cast(int, current_user.id))
         
-        # Verificar que el log pertenece a la sesión
-        session_id_column = existing_log.session_id
-        stmt = select(session_id_column)
-        result = await db.execute(stmt)
-        log_session_id = result.scalar_one()
+        # Verificar que el log pertenece a la sesión correcta
+        # Para cardio puede ser programado (via programmed_exercise) o libre (via training_session)
+        if existing_log.programmed_exercise_id:
+            # Es cardio programado, verificar via programmed_exercise
+            stmt = select(ProgrammedExercise.session_id).where(
+                ProgrammedExercise.id == existing_log.programmed_exercise_id
+            )
+            result = await db.execute(stmt)
+            log_session_id = result.scalar_one_or_none()
+        else:
+            # Es cardio libre, verificar directamente
+            log_session_id = existing_log.training_session_id
         
         if log_session_id != session_id:
             raise HTTPException(status_code=400, detail="This log does not belong to the specified session")

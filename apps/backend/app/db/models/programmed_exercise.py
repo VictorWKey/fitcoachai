@@ -70,6 +70,9 @@ class ProgrammedExercise(Base):
     # Block type (replaces exercise_block table)
     block = Column(Enum(BlockType), nullable=False)
     
+    # Exercise order within the session (0, 1, 2, 3...)
+    exercise_order = Column(Integer, nullable=False, default=0)
+    
     # Exercise properties
     tempo = Column(String, nullable=True)  # Format: "E-B-C-T" (eccentric-bottom-concentric-top)
     sets = Column(Integer, nullable=True)

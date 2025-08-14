@@ -15,6 +15,7 @@ from db.models.strength_log import SetType
 class ProgrammedExerciseBase(BaseModel):
     """Base schema for programmed exercises."""
     block: BlockType
+    exercise_order: Optional[int] = None  # Position within session (0, 1, 2...)
     tempo: Optional[str] = None
     sets: Optional[int] = None
     reps: Optional[int] = None
@@ -64,19 +65,18 @@ class TrainingProgramCreate(TrainingProgramBase):
     training_weeks: List[TrainingWeekCreate] = []
 
 # Update schemas
-class ProgrammedExerciseUpdate(BaseModel):
+class ProgrammedExerciseUpdate(ProgrammedExerciseBase):
     """Schema for updating a programmed exercise."""
-    block: Optional[BlockType] = None
-    tempo: Optional[str] = None
-    sets: Optional[int] = None
-    reps: Optional[int] = None
-    load_type: Optional[LoadType] = None
-    rpe_target: Optional[float] = None
-    percentage_1rm: Optional[float] = None
-    weight_range: Optional[str] = None
-    rest_seconds: Optional[int] = None
-    notes: Optional[str] = None
-    sets_type: Optional[SetType] = None
+    standard_exercise_id: Optional[int] = None
+
+class ExerciseReorderItem(BaseModel):
+    """Schema for reordering exercises."""
+    id: int
+    exercise_order: int
+
+class ExerciseReorderRequest(BaseModel):
+    """Schema for exercise reorder request."""
+    exercises: List[ExerciseReorderItem]
 
 class TrainingSessionUpdate(BaseModel):
     """Schema for updating a training session."""
@@ -101,6 +101,7 @@ class ProgrammedExerciseResponse(ProgrammedExerciseBase):
     """Schema for programmed exercise response."""
     id: int
     session_id: int
+    exercise_order: int  # Required in response
     exercise_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime

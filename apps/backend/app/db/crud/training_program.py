@@ -3,7 +3,7 @@ CRUD operations for training programs.
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 
@@ -249,6 +249,17 @@ async def create_programmed_exercise(
 ) -> ProgrammedExercise:
     """Create a new programmed exercise."""
     
+    # Calculate exercise_order if not provided
+    exercise_order = exercise_data.exercise_order
+    if exercise_order is None:
+        # Get the highest order in the session and add 1
+        stmt = select(func.coalesce(func.max(ProgrammedExercise.exercise_order), -1)).where(
+            ProgrammedExercise.session_id == session_id
+        )
+        result = await db.execute(stmt)
+        max_order = result.scalar()
+        exercise_order = max_order + 1
+    
     # Calculate sets_type automatically if not provided
     calculated_sets_type = exercise_data.sets_type
     if calculated_sets_type is None:
@@ -264,6 +275,7 @@ async def create_programmed_exercise(
         session_id=session_id,
         standard_exercise_id=exercise_data.standard_exercise_id,
         block=exercise_data.block,
+        exercise_order=exercise_order,
         tempo=exercise_data.tempo,
         sets=exercise_data.sets,
         reps=exercise_data.reps,
@@ -303,11 +315,16 @@ async def update_training_program(
 
 async def delete_training_program(db: AsyncSession, program_id: int) -> bool:
     """Delete a training program and all related entities."""
-    query = delete(TrainingProgram).where(TrainingProgram.id == program_id)
-    result = await db.execute(query)
+    # Get the program instance first to trigger cascade deletes
+    program = await get_training_program_simple(db, program_id)
+    if not program:
+        return False
+    
+    # Delete using the ORM instance to trigger cascade relationships
+    await db.delete(program)
     await db.commit()
     
-    return result.rowcount > 0
+    return True
 
 # Additional CRUD operations for individual components
 async def get_training_week(db: AsyncSession, week_id: int) -> Optional[TrainingWeek]:
