@@ -13,8 +13,9 @@ from db.models.user import User
 from db.models.training_program import TrainingProgram
 from db.models.training_week import TrainingWeek
 from db.schemas.training_program import (
-    TrainingWeekResponse, TrainingWeekListResponse
+    TrainingWeekResponse, TrainingWeekListResponse, TrainingWeekCreate
 )
+from db.crud.training_program import create_training_week
 from api.services.auth import get_current_verified_user
 
 router = APIRouter()
@@ -103,5 +104,47 @@ async def get_program_week(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Training week not found"
         )
+    
+    return week
+
+
+@router.post("/programs/{program_id}/weeks", response_model=TrainingWeekResponse, status_code=status.HTTP_201_CREATED)
+async def create_program_week(
+    week_data: TrainingWeekCreate,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    program_id: int = Path(..., ge=1)
+):
+    """
+    Create a new week for a training program.
+    
+    The week_number will be automatically calculated based on existing weeks if not provided.
+    Sessions within the week will have their session_order automatically calculated if not provided.
+    """
+    # Verify program exists and user has access
+    stmt = select(TrainingProgram).where(
+        TrainingProgram.id == program_id,
+        TrainingProgram.user_id == current_user.id
+    )
+    result = await db.execute(stmt)
+    program = result.scalar_one_or_none()
+    
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Training program not found or access denied"
+        )
+    
+    # Create the week
+    new_week = await create_training_week(db, week_data, program_id)
+    await db.commit()
+    
+    # Return the created week with full details
+    stmt = select(TrainingWeek).options(
+        selectinload(TrainingWeek.training_sessions)
+    ).where(TrainingWeek.id == new_week.id)
+    
+    result = await db.execute(stmt)
+    week = result.scalar_one()
     
     return week

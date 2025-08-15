@@ -207,22 +207,27 @@ async def replace_program_complete(
         current_weeks_result = await db.execute(current_weeks_stmt)
         current_weeks = {week.id: week for week in current_weeks_result.scalars().all()}
         
-        # Process weeks from new data
+        # Process weeks from new data and assign proper ordering
         new_week_ids = set()
         if program_data.training_weeks:
-            for week_data in program_data.training_weeks:
+            # Process weeks in the order they appear in the data
+            # This ensures the week_number reflects the desired position
+            for index, week_data in enumerate(program_data.training_weeks):
+                # Set week_number based on position in the array, but respect provided week_number if available
+                desired_week_number = week_data.week_number if hasattr(week_data, 'week_number') and week_data.week_number is not None else index + 1
+                
                 if week_data.id and week_data.id in current_weeks:
                     # Update existing week
                     new_week_ids.add(week_data.id)
                     existing_week = current_weeks[week_data.id]
-                    existing_week.week_number = week_data.week_number
+                    existing_week.week_number = desired_week_number  # Use calculated week number
                     existing_week.description = week_data.description
                     await _update_week_sessions(db, existing_week.id, week_data.training_sessions or [])
                 else:
                     # Create new week
                     new_week = TrainingWeek(
                         program_id=program_id,
-                        week_number=week_data.week_number,
+                        week_number=desired_week_number,  # Use calculated week number
                         description=week_data.description
                     )
                     db.add(new_week)
@@ -270,14 +275,26 @@ async def _update_week_sessions(db: AsyncSession, week_id: int, sessions_data: L
     current_sessions_result = await db.execute(current_sessions_stmt)
     current_sessions = {session.id: session for session in current_sessions_result.scalars().all()}
     
-    # Process sessions from new data and assign proper ordering
+    # Process sessions from new data and assign proper ordering based on day_of_week
     new_session_ids = set()
     
-    # Process sessions in the order they appear in the data
-    # This ensures the session_order reflects the desired position
-    for index, session_data in enumerate(sessions_data):
-        # Set session_order based on position in the array, but respect provided session_order if available
-        desired_order = session_data.session_order if hasattr(session_data, 'session_order') and session_data.session_order is not None else index
+    # First, collect all sessions with their day_of_week for smart ordering
+    sessions_with_days = []
+    for session_data in sessions_data:
+        sessions_with_days.append((session_data, session_data.day_of_week))
+    
+    # Sort sessions by day_of_week to determine chronological order
+    sessions_with_days.sort(key=lambda x: x[1] if x[1] is not None else 999)  # None values go last
+    
+    # Process sessions in chronological order and assign session_order
+    for order_index, (session_data, day_of_week) in enumerate(sessions_with_days):
+        # Calculate session_order based on chronological position
+        if hasattr(session_data, 'session_order') and session_data.session_order is not None:
+            # Respect explicitly provided session_order
+            desired_order = session_data.session_order
+        else:
+            # Auto-calculate based on chronological position (0, 1, 2...)
+            desired_order = order_index
         
         if session_data.id and session_data.id in current_sessions:
             # Update existing session

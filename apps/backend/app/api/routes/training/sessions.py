@@ -16,8 +16,9 @@ from db.models.training_week import TrainingWeek
 from db.models.training_session import TrainingSession, SessionStatus
 from db.models.programmed_exercise import ProgrammedExercise
 from db.schemas.training_program import (
-    TrainingSessionResponse, TrainingSessionListResponse
+    TrainingSessionResponse, TrainingSessionListResponse, TrainingSessionCreate
 )
+from db.crud.training_program import create_training_session
 from db.crud.training_session import (
     get_session_with_exercises,
     start_training_session,
@@ -217,6 +218,62 @@ async def finish_session(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error finishing session: {str(e)}")
+
+@router.post("/programs/{program_id}/weeks/{week_id}/sessions", response_model=TrainingSessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_week_session(
+    session_data: TrainingSessionCreate,
+    current_user: Annotated[User, Depends(get_current_verified_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    program_id: int = Path(..., ge=1),
+    week_id: int = Path(..., ge=1)
+):
+    """
+    Create a new session for a training week.
+    
+    The session_order will be automatically calculated based on existing sessions if not provided.
+    Exercises within the session will have their exercise_order automatically calculated if not provided.
+    """
+    # Verify program exists and user has access
+    stmt = select(TrainingProgram).where(
+        TrainingProgram.id == program_id,
+        TrainingProgram.user_id == current_user.id
+    )
+    result = await db.execute(stmt)
+    program = result.scalar_one_or_none()
+    
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Training program not found or access denied"
+        )
+    
+    # Verify week exists and belongs to the program
+    stmt = select(TrainingWeek).where(
+        TrainingWeek.id == week_id,
+        TrainingWeek.program_id == program_id
+    )
+    result = await db.execute(stmt)
+    week = result.scalar_one_or_none()
+    
+    if not week:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Training week not found"
+        )
+    
+    # Create the session
+    new_session = await create_training_session(db, session_data, week_id)
+    await db.commit()
+    
+    # Return the created session with full details
+    stmt = select(TrainingSession).options(
+        selectinload(TrainingSession.programmed_exercises)
+    ).where(TrainingSession.id == new_session.id)
+    
+    result = await db.execute(stmt)
+    session = result.scalar_one()
+    
+    return session
 
 @router.get("/active-session")
 async def get_active_session(

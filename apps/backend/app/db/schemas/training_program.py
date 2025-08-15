@@ -31,12 +31,12 @@ class TrainingSessionBase(BaseModel):
     """Base schema for training sessions."""
     name: str
     day_of_week: Optional[int] = None
-    session_order: int  # Sequential order within program (0,1,2,3...)
+    session_order: Optional[int] = None  # Sequential order within program (0,1,2,3...) - auto-calculated if not provided
     description: Optional[str] = None
 
 class TrainingWeekBase(BaseModel):
     """Base schema for training weeks."""
-    week_number: int
+    week_number: Optional[int] = None  # Week number within program (1,2,3...) - auto-calculated if not provided
     description: Optional[str] = None
 
 class TrainingProgramBase(BaseModel):
@@ -170,6 +170,7 @@ class TrainingSessionResponse(TrainingSessionBase):
     """Schema for training session response - compatible with Update schema."""
     id: int
     week_id: int  # Metadata - ignored in updates
+    session_order: int  # Show actual value in response
     session_status: str  # Metadata - ignored in updates
     programmed_exercises: List[ProgrammedExerciseResponse] = []
     created_at: datetime  # Metadata - ignored in updates
@@ -207,7 +208,13 @@ class TrainingWeekResponse(TrainingWeekBase):
     """Schema for training week response - compatible with Update schema."""
     id: int
     program_id: int  # Metadata - ignored in updates
+    week_number: int  # Show actual value in response
     training_sessions: List[TrainingSessionResponse] = []
+    created_at: datetime  # Metadata - ignored in updates
+    updated_at: datetime  # Metadata - ignored in updates
+
+    class Config:
+        from_attributes = True
     created_at: datetime  # Metadata - ignored in updates
     updated_at: datetime  # Metadata - ignored in updates
 

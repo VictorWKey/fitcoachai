@@ -190,9 +190,20 @@ async def create_training_week(
     try:
         logger.info(f"Creating training week {week_data.week_number} for program {program_id}")
         
+        # Calculate week_number if not provided
+        week_number = week_data.week_number
+        if week_number is None:
+            # Get the highest week_number in the program and add 1
+            stmt = select(func.coalesce(func.max(TrainingWeek.week_number), 0)).where(
+                TrainingWeek.program_id == program_id
+            )
+            result = await db.execute(stmt)
+            max_week_number = result.scalar()
+            week_number = max_week_number + 1
+        
         db_week = TrainingWeek(
             program_id=program_id,
-            week_number=week_data.week_number,
+            week_number=week_number,
             description=week_data.description
         )
         db.add(db_week)
@@ -200,14 +211,26 @@ async def create_training_week(
         
         logger.info(f"Training week created with ID: {db_week.id}")
         
-        # Create sessions
+        # Create sessions in chronological order (sorted by day_of_week)
         logger.info(f"Creating {len(week_data.training_sessions)} sessions for week {db_week.id}")
-        for i, session_data in enumerate(week_data.training_sessions):
-            logger.info(f"Creating session {i+1}: {session_data.name}")
+        
+        # Sort sessions by day_of_week for proper chronological ordering
+        sessions_to_create = list(week_data.training_sessions)
+        sessions_to_create.sort(key=lambda s: s.day_of_week if s.day_of_week is not None else 999)
+        
+        for i, session_data in enumerate(sessions_to_create):
+            # Set session_order based on chronological position if not provided
+            if not hasattr(session_data, 'session_order') or session_data.session_order is None:
+                from ..schemas.training_program import TrainingSessionCreate
+                session_data_dict = session_data.model_dump() if hasattr(session_data, 'model_dump') else session_data.__dict__.copy()
+                session_data_dict['session_order'] = i  # Use chronological position as session_order
+                session_data = TrainingSessionCreate(**session_data_dict)
+            
+            logger.info(f"Creating session {i+1}: {session_data.name} (day {session_data.day_of_week})")
             db_session = await create_training_session(db, session_data, cast(int, db_week.id))
             logger.info(f"Session {i+1} created with ID: {db_session.id}")
         
-        logger.info(f"Training week {week_data.week_number} creation completed")
+        logger.info(f"Training week {week_number} creation completed")
         return db_week
         
     except Exception as e:
@@ -224,11 +247,39 @@ async def create_training_session(
     try:
         logger.info(f"Creating training session '{session_data.name}' for week {week_id}")
         
+        # Calculate session_order if not provided
+        session_order = session_data.session_order
+        if session_order is None:
+            if session_data.day_of_week is not None:
+                # Calculate session_order based on chronological position within the week
+                # Get all existing sessions in this week to determine the chronological order
+                stmt = select(TrainingSession).where(
+                    TrainingSession.week_id == week_id
+                ).order_by(TrainingSession.day_of_week)
+                result = await db.execute(stmt)
+                existing_sessions = result.scalars().all()
+                
+                # Find the chronological position for this day_of_week
+                days_in_week = [s.day_of_week for s in existing_sessions if s.day_of_week is not None]
+                days_in_week.append(session_data.day_of_week)
+                days_in_week.sort()
+                
+                # The session_order is the position in the sorted days list
+                session_order = days_in_week.index(session_data.day_of_week)
+            else:
+                # Fallback: Get the highest session_order in the week and add 1
+                stmt = select(func.coalesce(func.max(TrainingSession.session_order), -1)).where(
+                    TrainingSession.week_id == week_id
+                )
+                result = await db.execute(stmt)
+                max_order = result.scalar()
+                session_order = max_order + 1
+        
         db_session = TrainingSession(
             week_id=week_id,
             name=session_data.name,
             day_of_week=session_data.day_of_week,
-            session_order=session_data.session_order,
+            session_order=session_order,
             description=session_data.description
         )
         db.add(db_session)
