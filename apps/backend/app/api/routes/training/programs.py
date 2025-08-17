@@ -278,16 +278,17 @@ async def _update_week_sessions(db: AsyncSession, week_id: int, sessions_data: L
     # Process sessions from new data and assign proper ordering based on day_of_week
     new_session_ids = set()
     
-    # First, collect all sessions with their day_of_week for smart ordering
+    # First, collect all sessions with their day_of_week and original index for smart ordering
     sessions_with_days = []
-    for session_data in sessions_data:
-        sessions_with_days.append((session_data, session_data.day_of_week))
+    for index, session_data in enumerate(sessions_data):
+        sessions_with_days.append((session_data, session_data.day_of_week, index))
     
-    # Sort sessions by day_of_week to determine chronological order
-    sessions_with_days.sort(key=lambda x: x[1] if x[1] is not None else 999)  # None values go last
+    # Sort sessions by day_of_week first, then by original array index to preserve order for same day
+    # This ensures that sessions with the same day_of_week maintain their relative order from the input array
+    sessions_with_days.sort(key=lambda x: (x[1] if x[1] is not None else 999, x[2]))
     
     # Process sessions in chronological order and assign session_order
-    for order_index, (session_data, day_of_week) in enumerate(sessions_with_days):
+    for order_index, (session_data, day_of_week, original_index) in enumerate(sessions_with_days):
         # Calculate session_order based on chronological position
         if hasattr(session_data, 'session_order') and session_data.session_order is not None:
             # Respect explicitly provided session_order
@@ -323,6 +324,27 @@ async def _update_week_sessions(db: AsyncSession, week_id: int, sessions_data: L
     sessions_to_delete = set(current_sessions.keys()) - new_session_ids
     for session_id in sessions_to_delete:
         await db.delete(current_sessions[session_id])
+    
+    # After all updates, normalize session_order to ensure proper sequential ordering
+    await _normalize_session_order(db, week_id)
+
+async def _normalize_session_order(db: AsyncSession, week_id: int):
+    """
+    Normalize session_order values to ensure they are sequential (0, 1, 2, ...)
+    based on day_of_week and creation order for sessions on the same day.
+    """
+    from db.models.training_session import TrainingSession
+    
+    # Get all sessions for this week ordered by day_of_week and current session_order
+    stmt = select(TrainingSession).where(
+        TrainingSession.week_id == week_id
+    ).order_by(TrainingSession.day_of_week, TrainingSession.session_order, TrainingSession.id)
+    result = await db.execute(stmt)
+    sessions = result.scalars().all()
+    
+    # Update session_order to be sequential
+    for index, session in enumerate(sessions):
+        session.session_order = index
 
 async def _update_session_exercises(db: AsyncSession, session_id: int, exercises_data: List):
     """

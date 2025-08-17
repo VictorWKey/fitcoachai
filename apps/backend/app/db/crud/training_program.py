@@ -255,17 +255,23 @@ async def create_training_session(
                 # Get all existing sessions in this week to determine the chronological order
                 stmt = select(TrainingSession).where(
                     TrainingSession.week_id == week_id
-                ).order_by(TrainingSession.day_of_week)
+                ).order_by(TrainingSession.day_of_week, TrainingSession.session_order)
                 result = await db.execute(stmt)
                 existing_sessions = result.scalars().all()
                 
-                # Find the chronological position for this day_of_week
-                days_in_week = [s.day_of_week for s in existing_sessions if s.day_of_week is not None]
-                days_in_week.append(session_data.day_of_week)
-                days_in_week.sort()
-                
-                # The session_order is the position in the sorted days list
-                session_order = days_in_week.index(session_data.day_of_week)
+                # Find the correct session_order by counting sessions with day_of_week <= new session's day_of_week
+                session_order = 0
+                for existing_session in existing_sessions:
+                    if existing_session.day_of_week is None:
+                        continue
+                    if existing_session.day_of_week < session_data.day_of_week:
+                        session_order += 1
+                    elif existing_session.day_of_week == session_data.day_of_week:
+                        # For same day, add 1 to place this session after existing ones on the same day
+                        session_order += 1
+                    else:
+                        # Found a session on a later day, stop counting
+                        break
             else:
                 # Fallback: Get the highest session_order in the week and add 1
                 stmt = select(func.coalesce(func.max(TrainingSession.session_order), -1)).where(
@@ -294,6 +300,9 @@ async def create_training_session(
             db_exercise = await create_programmed_exercise(db, exercise_data, cast(int, db_session.id))
             logger.info(f"Exercise {i+1} created with ID: {db_exercise.id}")
         
+        # Normalize session_order for all sessions in this week to ensure proper sequential ordering
+        await _normalize_session_order_crud(db, week_id)
+        
         logger.info(f"Training session '{session_data.name}' creation completed")
         return db_session
         
@@ -301,6 +310,22 @@ async def create_training_session(
         logger.error(f"Error creating training session '{session_data.name}': {str(e)}")
         logger.exception("Full exception traceback:")
         raise
+
+async def _normalize_session_order_crud(db: AsyncSession, week_id: int):
+    """
+    Normalize session_order values to ensure they are sequential (0, 1, 2, ...)
+    based on day_of_week and creation order for sessions on the same day.
+    """
+    # Get all sessions for this week ordered by day_of_week and current session_order, then by id for tie-breaking
+    stmt = select(TrainingSession).where(
+        TrainingSession.week_id == week_id
+    ).order_by(TrainingSession.day_of_week, TrainingSession.session_order, TrainingSession.id)
+    result = await db.execute(stmt)
+    sessions = result.scalars().all()
+    
+    # Update session_order to be sequential
+    for index, session in enumerate(sessions):
+        session.session_order = index
 
 async def create_programmed_exercise(
     db: AsyncSession, 
