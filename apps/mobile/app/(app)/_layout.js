@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { authService } from '../../src/services/apiService';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
-import { resetAllStores } from '../../src/store/storeRegistry';
 import { COLORS, SHADOWS } from '../../src/constants/theme';
 import { ActiveSessionIndicator } from '../../src/components';
 

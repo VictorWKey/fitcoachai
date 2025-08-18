@@ -4,7 +4,6 @@ import { Stack, useRouter } from 'expo-router';
 import { useAuthStore } from '../src/store/authStore';
 import { authService } from '../src/services/apiService';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ActiveSessionProvider } from '../src/contexts/ActiveSessionContext';
 import { COLORS, SHADOWS } from '../src/constants/theme';
 
 export default function RootLayout() {
@@ -51,7 +50,6 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ActiveSessionProvider>
         <Stack screenOptions={{
           headerStyle: {
             backgroundColor: COLORS.primary,
@@ -82,7 +80,6 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
         </Stack>
-      </ActiveSessionProvider>
     </GestureHandlerRootView>
   );
 }
